@@ -71,7 +71,7 @@ class Decoder(srd.Decoder):
     def reset(self):
         self.illegal_bus = 0
         self.samplenum = -1
-        self.clause45_addr = -1 # Clause 45 is context sensitive.       
+        self.clause45_addr = -1 # Clause 45 is context sensitive.
         self.reset_decoder_state()
 
     def start(self):
@@ -143,7 +143,7 @@ class Decoder(srd.Decoder):
         self.data = -1
         self.data_bits = 16
         self.state = 'PRE'
-        self.is_read = True 
+        self.is_read = True
 
     def state_PRE(self, mdio):
         if self.illegal_bus:
@@ -231,7 +231,7 @@ class Decoder(srd.Decoder):
                     self.is_read = False
                 elif self.opcode == 2:
                     op = ['OP: READINC', 'OP: RI']
-                    self.is_read = True              
+                    self.is_read = True
                 elif self.opcode == 3:
                     op = ['OP: READ', 'OP: R']
                     self.is_read = True
@@ -331,14 +331,14 @@ class Decoder(srd.Decoder):
 
     def decode(self):
         find_flags = [{0: 'r'}, {0: 'f'}]
-        flag_dex = 0 
-        read_edge = self.options["read_edge"][0] 
+        flag_dex = 0
+        read_edge = self.options["read_edge"][0]
 
         while True:
             # Process pin state upon rising MDC edge.
             (mdc, mdio) = self.wait(find_flags[flag_dex])
             self.handle_bit(mdio)
-        
+
             if self.state == 'DATA' and self.is_read and read_edge == 'f':
                 flag_dex = 1
             else:

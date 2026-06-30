@@ -165,7 +165,7 @@ class Decoder(srd.Decoder):
             self.signalling = self.options['signalling']
             self.update_bitrate()
 
-    def update_bitrate(self): 
+    def update_bitrate(self):
         if self.signalling != 'automatic':
             self.bitrate = bitrates[self.signalling]
             self.bitwidth = float(self.samplerate) / float(self.bitrate)

@@ -78,7 +78,7 @@ class Decoder(srd.Decoder):
         '''Put a warning message 'msg' at 'pos'.'''
         self.put(pos.ss, pos.es, self.out_ann, [ANN_WARN, [msg]])
 
-    def put_ann(self, pos, ann, data): 
+    def put_ann(self, pos, ann, data):
         self.put(pos.ss, pos.es, self.out_ann, [ann, data])
 
     def next(self):
@@ -213,7 +213,6 @@ class Decoder(srd.Decoder):
 
         text = '{} = '.format(label) + '{$}'
         longtext = ''.join([text, '; ', longtext_chiprdy, longtext_state, longtext_fifo])
-        #self.printlog(longtext + '   ,' + text + '\n')
         self.put_ann(pos, ann, [longtext, text, '@%02X' % status])
 
     def decode_mb_data(self, pos, ann, data, label):
@@ -224,7 +223,7 @@ class Decoder(srd.Decoder):
             return '{:02X}'.format(b)
 
         data = ' '.join([escape(b) for b in data])
-        text = '{} = '.format(label) + '{$}' 
+        text = '{} = '.format(label) + '{$}'
         self.put_ann(pos, ann, [text, '@' + data])
 
     def finish_command(self, pos):

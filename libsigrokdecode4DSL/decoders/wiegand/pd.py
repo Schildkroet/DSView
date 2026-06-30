@@ -113,7 +113,7 @@ class Decoder(srd.Decoder):
                 blen = len(self._bits)
 
                 # get data block
-                if bstart != -1: 
+                if bstart != -1:
                     bits = []
                     while bstart + 4 <= blen:
                         bits.append(self._bits[bstart+0]);

@@ -105,7 +105,7 @@ class Decoder(srd.Decoder):
                 [idx, ['%s frame: %s' % (xmitdir, frame)]])
             self.framecache[rxtx] = []
         if write:
-            self.putx([1, ['%s: {$}' % (reg_desc, '@%02X' % self.mosi_bytes[1])]])
+            self.putx([1, ['%s: {$}' % reg_desc, '@%02X' % self.mosi_bytes[1]]])
         else:
             self.putx([0, ['%s: {$}' % reg_desc, '@%02X' % self.miso_bytes[1]]])
             numretries = (self.miso_bytes[1] & 0xc0) >> 6

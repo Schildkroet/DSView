@@ -97,7 +97,7 @@ class Decoder(srd.Decoder):
                         v = '%04x' % self.data
                     else:
                         v = '%08x' % self.data
-                    
+
                     ch = self.channel % self.channels
 
                     self.put(self.ss_block, self.samplenum, self.out_ann,
@@ -112,7 +112,7 @@ class Decoder(srd.Decoder):
             # Check for new frame.
             # Note, frame may be a single clock, or active for the first
             # sample in the frame.
-            
+
             if frame != self.lastframe and frame == 1:
                 self.channel = 0
                 if self.options['sampling edge'] == 'first edge':
@@ -123,5 +123,5 @@ class Decoder(srd.Decoder):
                     self.data = 0
                 if self.ss_block is None:
                     self.ss_block = self.samplenum
-                    
+
             self.lastframe = frame

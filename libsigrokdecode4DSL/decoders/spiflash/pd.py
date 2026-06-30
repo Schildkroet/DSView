@@ -171,7 +171,7 @@ class Decoder(srd.Decoder):
         self.putx([Ann.BIT,
             ['Address bits %d..%d: {$}' % (b, b - 7),
              'Addr bits %d..%d: {$}' % (b, b - 7),
-             'Addr bits %d..%d' % (b, b - 7), 
+             'Addr bits %d..%d' % (b, b - 7),
              'A%d..A%d' % (b, b - 7),
              '@%02X' % mosi
              ]])
@@ -375,7 +375,7 @@ class Decoder(srd.Decoder):
             self.es_field = self.es
             if self.cmdstate == 2:
                 self.ss_field = self.ss
-            self.putx([Ann.BIT, ['Status register byte %d: {$}' % ((self.cmdstate % 2) + 1, '@%02x' % miso)]])
+            self.putx([Ann.BIT, ['Status register byte %d: {$}' % ((self.cmdstate % 2) + 1), '@%02x' % miso]])
         self.cmdstate += 1
 
     # TODO: Warn/abort if we don't see the necessary amount of bytes.
