@@ -106,7 +106,7 @@ class Decoder(srd.Decoder):
             self.wait(condition)
             now = self.samplenum
 
-            if have_reset and self.matched[cond_reset]:
+            if have_reset and (self.matched & (1 << cond_reset)):
                 edge_count = int(self.options['edge_off'])
                 edge_start = now
                 word_count = int(self.options['word_off'])

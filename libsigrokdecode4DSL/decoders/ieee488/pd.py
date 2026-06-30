@@ -624,12 +624,12 @@ class Decoder(srd.Decoder):
             data, clk = pins[PIN_DATA], pins[PIN_CLK]
             atn, = self.invert_pins([pins[PIN_ATN]])
 
-            if self.matched[0]:
+            if (self.matched & (1 << 0)):
                 # Falling edge on ATN, reset step.
                 step = STEP_WAIT_READY_TO_SEND
 
             if step == STEP_WAIT_READY_TO_SEND:
-                # Don't use self.matched[1] here since we might come from
+                # Don't use (self.matched & (1 << 1)) here since we might come from
                 # a step with different conds due to the code above.
                 if data == 0 and clk == 1:
                     # Rising edge on CLK while DATA is low: Ready to send.
@@ -654,7 +654,7 @@ class Decoder(srd.Decoder):
                     step = STEP_CLOCK_DATA_BITS
                     ss_bit = self.samplenum
             elif step == STEP_CLOCK_DATA_BITS:
-                if self.matched[1]:
+                if (self.matched & (1 << 1)):
                     if clk == 1:
                         # Rising edge on CLK; latch DATA.
                         bits.append(data)
@@ -707,19 +707,19 @@ class Decoder(srd.Decoder):
             # captures, many edges fall onto the same sample number. So
             # we process active edges of flags early (before processing
             # data bits), and inactive edges late (after data got processed).
-            if idx_ifc is not None and self.matched[idx_ifc] and pins[PIN_IFC] == 1:
+            if idx_ifc is not None and (self.matched & (1 << idx_ifc)) and pins[PIN_IFC] == 1:
                 self.handle_ifc_change(pins[PIN_IFC])
-            if idx_eoi is not None and self.matched[idx_eoi] and pins[PIN_EOI] == 1:
+            if idx_eoi is not None and (self.matched & (1 << idx_eoi)) and pins[PIN_EOI] == 1:
                 self.handle_eoi_change(pins[PIN_EOI])
-            if self.matched[idx_atn] and pins[PIN_ATN] == 1:
+            if (self.matched & (1 << idx_atn)) and pins[PIN_ATN] == 1:
                 self.handle_atn_change(pins[PIN_ATN])
-            if self.matched[idx_dav]:
+            if (self.matched & (1 << idx_dav)):
                 self.handle_dav_change(pins[PIN_DAV], pins[PIN_DIO1:PIN_DIO8 + 1])
-            if self.matched[idx_atn] and pins[PIN_ATN] == 0:
+            if (self.matched & (1 << idx_atn)) and pins[PIN_ATN] == 0:
                 self.handle_atn_change(pins[PIN_ATN])
-            if idx_eoi is not None and self.matched[idx_eoi] and pins[PIN_EOI] == 0:
+            if idx_eoi is not None and (self.matched & (1 << idx_eoi)) and pins[PIN_EOI] == 0:
                 self.handle_eoi_change(pins[PIN_EOI])
-            if idx_ifc is not None and self.matched[idx_ifc] and pins[PIN_IFC] == 0:
+            if idx_ifc is not None and (self.matched & (1 << idx_ifc)) and pins[PIN_IFC] == 0:
                 self.handle_ifc_change(pins[PIN_IFC])
 
             waitcond[idx_dav][PIN_DAV] = 'e'

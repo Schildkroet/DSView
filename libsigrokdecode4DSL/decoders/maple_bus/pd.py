@@ -147,7 +147,7 @@ class Decoder(srd.Decoder):
         self.ss = self.samplenum
         count = 0
         while True:
-            (sdcka, sdckb) = self.wait([{1: 'f'}, {0: 'r'}])
+            sdcka, sdckb = self.wait([{1: 'f'}, {0: 'r'}])
             if (self.matched & (0b1 << 0)):
                 count = count + 1
             if (self.matched & (0b1 << 1)):
@@ -176,7 +176,7 @@ class Decoder(srd.Decoder):
         countb = 0
         self.data = 0
         while countb < 4:
-            (sdcka, sdckb) = self.wait([{0: 'f'}, {1: 'f'}])
+            sdcka, sdckb = self.wait([{0: 'f'}, {1: 'f'}])
             self.es = self.samplenum
             if (self.matched & (0b1 << 0)):
                 if counta == countb:

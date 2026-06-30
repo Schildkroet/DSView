@@ -171,7 +171,7 @@ class Decoder(srd.Decoder):
 
             symbol = (pval, iunits)
 
-            if self.matched[1]:
+            if self.matched & (1 << 1):
                 yield None # Flush word.
                 continue
 

@@ -102,6 +102,8 @@ class Decoder(srd.Decoder):
 
     def decode(self):
         while True:
-            (clk, sync, d3, d2, d1, d0) = self.wait({0: 'r'})
-            d = (d3, d2, d1, d0)
+            pins = self.wait({0: 'r'})
+            clk = pins[0]
+            sync = pins[1]
+            d = pins[2:]
             self.handle_clk_edge(clk, sync, d)

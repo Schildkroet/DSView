@@ -86,7 +86,7 @@ class Decoder(srd.Decoder):
 
         while True:
             self.wait([{0: edgetype}, {'skip': int(3 * timeunit)}])
-            got_timeout = self.matched[1]
+            got_timeout = bool(self.matched & (1 << 1))
             sampledelta = (self.samplenum - prevedge)
             prevedge = self.samplenum
             timedelta = roundto(sampledelta / timeunit, 0.5)
