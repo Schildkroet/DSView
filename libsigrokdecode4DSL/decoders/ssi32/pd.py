@@ -33,7 +33,7 @@ class Decoder(srd.Decoder):
     outputs = []
     tags = ['Embedded/industrial']
     options = (
-        {'id': 'msgsize', 'desc': 'Message size', 'default': 64, 'idn':'dec_ssi32_opt_msgsize'},
+        {'id': 'msgsize', 'desc': 'Message size', 'default': 64},
     )
     annotations = (
         ('ctrl-tx', 'CTRL TX'),

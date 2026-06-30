@@ -45,7 +45,7 @@ digits = {
 class Decoder(srd.Decoder):
     api_version = 3
     id = 'seven_segment'
-    name = 'Segment-7'
+    name = '7-segment'
     longname = '7-segment display'
     desc = '7-segment display protocol.'
     license = 'gplv2+'
@@ -53,20 +53,20 @@ class Decoder(srd.Decoder):
     outputs = []
     tags = ['Display']
     channels = (
-        {'id': 'a', 'name': 'A', 'desc': 'Segment A', 'idn':'dec_seven_segment_chan_A'},
-        {'id': 'b', 'name': 'B', 'desc': 'Segment B', 'idn':'dec_seven_segment_chan_B'},
-        {'id': 'c', 'name': 'C', 'desc': 'Segment C', 'idn':'dec_seven_segment_chan_C'},
-        {'id': 'd', 'name': 'D', 'desc': 'Segment D', 'idn':'dec_seven_segment_chan_D'},
-        {'id': 'e', 'name': 'E', 'desc': 'Segment E', 'idn':'dec_seven_segment_chan_E'},
-        {'id': 'f', 'name': 'F', 'desc': 'Segment F', 'idn':'dec_seven_segment_chan_F'},
-        {'id': 'g', 'name': 'G', 'desc': 'Segment G', 'idn':'dec_seven_segment_chan_G'},
+        {'id': 'a', 'name': 'A', 'desc': 'Segment A'},
+        {'id': 'b', 'name': 'B', 'desc': 'Segment B'},
+        {'id': 'c', 'name': 'C', 'desc': 'Segment C'},
+        {'id': 'd', 'name': 'D', 'desc': 'Segment D'},
+        {'id': 'e', 'name': 'E', 'desc': 'Segment E'},
+        {'id': 'f', 'name': 'F', 'desc': 'Segment F'},
+        {'id': 'g', 'name': 'G', 'desc': 'Segment G'},
     )
     optional_channels = (
-        {'id': 'dp', 'name': 'DP', 'desc': 'Decimal point', 'idn':'dec_seven_segment_opt_chan_dp'},
+        {'id': 'dp', 'name': 'DP', 'desc': 'Decimal point'},
     )
     options = (
         {'id': 'polarity', 'desc': 'Expected polarity',
-            'default': 'common-cathode', 'values': ('common-cathode', 'common-anode'), 'idn':'dec_seven_segment_opt_polarity'},
+            'default': 'common-cathode', 'values': ('common-cathode', 'common-anode')},
     )
     annotations = (
         ('decoded-digit', 'Decoded digit'),
@@ -91,8 +91,7 @@ class Decoder(srd.Decoder):
         return digits.get(pins, None)
 
     def decode(self):
-        (s0, s1, s2, s3, s4, s5, s6, dp) = self.wait()
-        oldpins = (s0, s1, s2, s3, s4, s5, s6, dp)
+        oldpins = self.wait()
 
         # Check if at least the 7 signals are present.
         if False in [p in (0, 1) for p in oldpins[:7]]:
@@ -109,8 +108,7 @@ class Decoder(srd.Decoder):
 
         while True:
             # Wait for any change.
-            (s0, s1, s2, s3, s4, s5, s6, dp) = self.wait(conditions)
-            pins = (s0, s1, s2, s3, s4, s5, s6, dp)
+            pins = self.wait(conditions)
 
             if self.options['polarity'] == 'common-anode':
                 # Invert all data lines if a common anode display is used.

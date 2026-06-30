@@ -53,13 +53,13 @@ class Decoder(srd.Decoder):
     outputs = []
     tags = ['Automotive']
     channels = (
-        {'id': 'channel', 'name': 'Channel', 'desc': 'FlexRay bus channel', 'idn':'dec_flexray_chan_channel'},
+        {'id': 'channel', 'name': 'Channel', 'desc': 'FlexRay bus channel'},
     )
     options = (
         {'id': 'channel_type', 'desc': 'Channel type', 'default': 'A',
-            'values': ('A', 'B'), 'idn':'dec_flexray_opt_channel_type'},
+            'values': ('A', 'B')},
         {'id': 'bitrate', 'desc': 'Bitrate (bit/s)', 'default': 10000000,
-            'values': (10000000, 5000000, 2500000), 'idn':'dec_flexray_opt_bitrate'},
+            'values': (10000000, 5000000, 2500000)},
     )
     annotations = (
         ('data', 'FlexRay payload data'),
@@ -76,9 +76,9 @@ class Decoder(srd.Decoder):
         ('cycle', 'Cycle code'),
         ('data-byte', 'Data byte'),
         ('frame-crc', 'Frame CRC'),
-        ('fes', 'Frame end sequence'),
+        ('cid-delimiter', 'Channel idle delimiter'),
         ('bss', 'Byte start sequence'),
-        ('warning', 'Warning'),
+        ('warnings', 'Human-readable warnings'),
         ('bit', 'Bit'),
         ('cid', 'Channel idle delimiter'),
         ('dts', 'Dynamic trailing sequence'),
@@ -407,7 +407,7 @@ class Decoder(srd.Decoder):
                 # Wait until we're in the correct bit/sampling position.
                 pos = self.get_sample_point(self.curbit)
                 (fr_rx,) = self.wait([{'skip': pos - self.samplenum}, {0: 'f'}])
-                if self.matched & 0b10:
+                if self.matched[1]:
                     self.dom_edge_seen()
-                if self.matched & 0b01:
+                if self.matched[0]:
                     self.handle_bit(fr_rx)

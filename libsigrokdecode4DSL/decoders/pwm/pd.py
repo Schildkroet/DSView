@@ -34,11 +34,11 @@ class Decoder(srd.Decoder):
     outputs = []
     tags = ['Encoding']
     channels = (
-        {'id': 'data', 'name': 'Data', 'desc': 'Data line', 'idn':'dec_pwm_chan_data'},
+        {'id': 'data', 'name': 'Data', 'desc': 'Data line'},
     )
     options = (
         {'id': 'polarity', 'desc': 'Polarity', 'default': 'active-high',
-            'values': ('active-low', 'active-high'), 'idn':'dec_pwm_opt_polarity'},
+            'values': ('active-low', 'active-high')},
     )
     annotations = (
         ('duty-cycle', 'Duty cycle'),

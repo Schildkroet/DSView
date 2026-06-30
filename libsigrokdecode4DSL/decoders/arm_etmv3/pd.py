@@ -161,13 +161,13 @@ class Decoder(srd.Decoder):
     )
     options = (
         {'id': 'objdump', 'desc': 'objdump path',
-            'default': 'arm-none-eabi-objdump', 'idn':'dec_arm_etmv3_opt_objdump'},
+            'default': 'arm-none-eabi-objdump'},
         {'id': 'objdump_opts', 'desc': 'objdump options',
-            'default': '-lSC', 'idn':'dec_arm_etmv3_opt_objdump_opts'},
+            'default': '-lSC'},
         {'id': 'elffile', 'desc': '.elf path',
-            'default': '', 'idn':'dec_arm_etmv3_opt_elffile'},
+            'default': ''},
         {'id': 'branch_enc', 'desc': 'Branch encoding',
-            'default': 'alternative', 'values': ('alternative', 'original'), 'idn':'dec_arm_etmv3_opt_branch_enc'},
+            'default': 'alternative', 'values': ('alternative', 'original')},
     )
 
     def __init__(self):

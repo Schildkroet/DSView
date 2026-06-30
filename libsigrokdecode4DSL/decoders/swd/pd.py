@@ -74,13 +74,13 @@ class Decoder(srd.Decoder):
     outputs = ['swd']
     tags = ['Debug/trace']
     channels = (
-        {'id': 'swclk', 'name': 'SWCLK', 'desc': 'Master clock', 'idn':'dec_swd_chan_swclk'},
-        {'id': 'swdio', 'name': 'SWDIO', 'desc': 'Data input/output', 'idn':'dec_swd_chan_swdio'},
+        {'id': 'swclk', 'name': 'SWCLK', 'desc': 'Master clock'},
+        {'id': 'swdio', 'name': 'SWDIO', 'desc': 'Data input/output'},
     )
     options = (
         {'id': 'strict_start',
          'desc': 'Wait for a line reset before starting to decode',
-         'default': 'no', 'values': ('yes', 'no'), 'idn':'dec_swd_opt_strict_start'},
+         'default': 'no', 'values': ('yes', 'no')},
     )
     annotations = (
         ('reset', 'RESET'),
@@ -147,7 +147,7 @@ class Decoder(srd.Decoder):
     def decode(self):
         while True:
             # Wait for any clock edge.
-            (clk, dio) = self.wait({0: 'e'})
+            clk, dio = self.wait({0: 'e'})
 
             # Count rising edges with DIO held high,
             # as a line reset (50+ high edges) can happen from any state.
@@ -201,15 +201,15 @@ class Decoder(srd.Decoder):
         elif self.state == 'DATA':
             self.state = 'DPARITY'
         elif self.state == 'DPARITY':
-            #self.put_python_data()
+            self.put_python_data()
             self.state = 'REQ'
             self.sample_edge = RISING
             self.turnaround = 1 if self.rw == 'R' else 0
 
     def reset_state(self):
         '''Line reset (or equivalent), wait for a new pending SWD request.'''
-        #if self.state != 'REQ': # Emit a Python data item.
-        #    self.put_python_data()
+        if self.state != 'REQ': # Emit a Python data item.
+            self.put_python_data()
         # Clear state.
         self.bits = ''
         self.samplenums = []

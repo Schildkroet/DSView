@@ -51,31 +51,31 @@ class Decoder(srd.Decoder):
     outputs = []
     tags = ['Debug/trace', 'Util', 'Encoding']
     channels = (
-        {'id': 'start', 'name': 'START', 'desc': 'START channel', 'idn':'dec_signature_chan_start'},
-        {'id': 'stop', 'name': 'STOP', 'desc': 'STOP channel', 'idn':'dec_signature_chan_stop'},
-        {'id': 'clk', 'name': 'CLOCK', 'desc': 'CLOCK channel', 'idn':'dec_signature_chan_clk'},
-        {'id': 'data', 'name': 'DATA', 'desc': 'DATA channel', 'idn':'dec_signature_chan_data'},
+        {'id': 'start', 'name': 'START', 'desc': 'START channel'},
+        {'id': 'stop', 'name': 'STOP', 'desc': 'STOP channel'},
+        {'id': 'clk', 'name': 'CLOCK', 'desc': 'CLOCK channel'},
+        {'id': 'data', 'name': 'DATA', 'desc': 'DATA channel'},
     )
     options = (
         {'id': 'start_edge', 'desc': 'START edge polarity',
-            'default': 'rising', 'values': ('rising', 'falling'), 'idn':'dec_signature_opt_start_edge'},
+            'default': 'rising', 'values': ('rising', 'falling')},
         {'id': 'stop_edge', 'desc': 'STOP edge polarity',
-            'default': 'rising', 'values': ('rising', 'falling'), 'idn':'dec_signature_opt_stop_edge'},
+            'default': 'rising', 'values': ('rising', 'falling')},
         {'id': 'clk_edge', 'desc': 'CLOCK edge polarity',
-            'default': 'falling', 'values': ('rising', 'falling'), 'idn':'dec_signature_opt_clk_edge'},
+            'default': 'falling', 'values': ('rising', 'falling')},
         {'id': 'annbits', 'desc': 'Enable bit level annotations',
-            'default': 'no', 'values': ('yes', 'no'), 'idn':'dec_signature_opt_annbits'},
+            'default': 'no', 'values': ('yes', 'no')},
     )
     annotations = (
         ('bit0', 'Bit0'),
         ('bit1', 'Bit1'),
         ('start', 'START'),
         ('stop', 'STOP'),
-        ('signature', 'Signature')
+        ('sig', 'Sig')
     )
     annotation_rows = (
         ('bits', 'Bits', (0, 1, 2, 3)),
-        ('signatures', 'Signatures', (4,))
+        ('sig', 'Sig', (4,))
     )
 
     def __init__(self):
@@ -135,7 +135,7 @@ class Decoder(srd.Decoder):
                         started = False
                     else:
                         self.putb(last_samplenum, [data, [str(data)]])
-                incoming = (bin(shiftreg & 0x0291).count('1') + data) & 1
+                incoming = (bin(shiftreg & 0b0000_0010_1001_0001).count('1') + data) & 1
                 shiftreg = (incoming << 15) | (shiftreg >> 1)
             prev_start = start
             prev_stop = stop

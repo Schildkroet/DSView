@@ -33,10 +33,10 @@ class Decoder(srd.Decoder):
     outputs = []
     tags = ['Util']
     channels = (
-        {'id': 'data', 'name': 'Data', 'desc': 'Data line', 'idn':'dec_counter_chan_data'},
+        {'id': 'data', 'name': 'Data', 'desc': 'Data line'},
     )
     optional_channels = (
-        {'id': 'reset', 'name': 'Reset', 'desc': 'Reset line', 'idn':'dec_counter_opt_chan_reset'},
+        {'id': 'reset', 'name': 'Reset', 'desc': 'Reset line'},
     )
     annotations = (
         ('edge_count', 'Edge count'),
@@ -50,15 +50,15 @@ class Decoder(srd.Decoder):
     )
     options = (
         {'id': 'data_edge', 'desc': 'Edges to count (data)', 'default': 'any',
-            'values': ('any', 'rising', 'falling'), 'idn':'dec_counter_opt_data_edge'},
-        {'id': 'divider', 'desc': 'Count divider (word width)', 'default': 0, 'idn':'dec_counter_opt_divider'},
+            'values': ('any', 'rising', 'falling')},
+        {'id': 'divider', 'desc': 'Count divider (word width)', 'default': 0},
         {'id': 'reset_edge', 'desc': 'Edge which clears counters (reset)',
-            'default': 'falling', 'values': ('rising', 'falling'), 'idn':'dec_counter_opt_reset_edge'},
-        {'id': 'edge_off', 'desc': 'Edge counter value after start/reset', 'default': 0, 'idn':'dec_counter_opt_edge_off'},
-        {'id': 'word_off', 'desc': 'Word counter value after start/reset', 'default': 0, 'idn':'dec_counter_opt_word_off'},
-        {'id': 'dead_cycles', 'desc': 'Ignore this many edges after reset', 'default': 0, 'idn':'dec_counter_opt_dead_cycles'},
+            'default': 'falling', 'values': ('rising', 'falling')},
+        {'id': 'edge_off', 'desc': 'Edge counter value after start/reset', 'default': 0},
+        {'id': 'word_off', 'desc': 'Word counter value after start/reset', 'default': 0},
+        {'id': 'dead_cycles', 'desc': 'Ignore this many edges after reset', 'default': 0},
         {'id': 'start_with_reset', 'desc': 'Assume decode starts with reset',
-            'default': 'no', 'values': ('no', 'yes'), 'idn':'dec_counter_opt_start_with_reset'},
+            'default': 'no', 'values': ('no', 'yes')},
     )
 
     def __init__(self):
@@ -106,7 +106,7 @@ class Decoder(srd.Decoder):
             self.wait(condition)
             now = self.samplenum
 
-            if have_reset and (self.matched & (0b1 <<cond_reset)):
+            if have_reset and self.matched[cond_reset]:
                 edge_count = int(self.options['edge_off'])
                 edge_start = now
                 word_count = int(self.options['word_off'])

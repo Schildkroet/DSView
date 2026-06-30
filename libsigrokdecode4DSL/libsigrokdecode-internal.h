@@ -22,9 +22,6 @@
 #ifndef LIBSIGROKDECODE_LIBSIGROKDECODE_INTERNAL_H
 #define LIBSIGROKDECODE_LIBSIGROKDECODE_INTERNAL_H
 
-/* Use the stable ABI subset as per PEP 384. */
-#define Py_LIMITED_API 0x03020000
-
 #include <Python.h> /* First, so we avoid a _POSIX_C_SOURCE warning. */
 #include "libsigrokdecode.h"
 #include <structmember.h>

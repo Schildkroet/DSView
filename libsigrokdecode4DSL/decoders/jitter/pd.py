@@ -40,14 +40,14 @@ class Decoder(srd.Decoder):
     outputs = []
     tags = ['Clock/timing', 'Util']
     channels = (
-        {'id': 'clk', 'name': 'Clock', 'desc': 'Clock reference channel', 'idn':'dec_jitter_chan_clk'},
-        {'id': 'sig', 'name': 'Resulting signal', 'desc': 'Resulting signal controlled by the clock', 'idn':'dec_jitter_chan_sig'},
+        {'id': 'clk', 'name': 'Clock', 'desc': 'Clock reference channel'},
+        {'id': 'sig', 'name': 'Resulting signal', 'desc': 'Resulting signal controlled by the clock'},
     )
     options = (
         {'id': 'clk_polarity', 'desc': 'Clock edge polarity',
-            'default': 'rising', 'values': ('rising', 'falling', 'both'), 'idn':'dec_jitter_opt_clk_polarity'},
+            'default': 'rising', 'values': ('rising', 'falling', 'both')},
         {'id': 'sig_polarity', 'desc': 'Resulting signal edge polarity',
-            'default': 'rising', 'values': ('rising', 'falling', 'both'), 'idn':'dec_jitter_opt_sig_polarity'},
+            'default': 'rising', 'values': ('rising', 'falling', 'both')},
     )
     annotations = (
         ('jitter', 'Jitter value'),
@@ -181,7 +181,7 @@ class Decoder(srd.Decoder):
             raise SamplerateError('Cannot decode without samplerate.')
         while True:
             # Wait for a transition on CLK and/or SIG.
-            (clk, sig) = self.wait([{0: 'e'}, {1: 'e'}])
+            clk, sig = self.wait([{0: 'e'}, {1: 'e'}])
 
             # State machine:
             # For each sample we can move 2 steps forward in the state machine.

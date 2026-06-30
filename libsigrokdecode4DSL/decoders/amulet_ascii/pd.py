@@ -19,15 +19,18 @@
 
 import sigrokdecode as srd
 from math import ceil
-from common.srdhelper import SrdIntEnum
 from .lists import *
 
 L = len(cmds)
 RX = 0
 TX = 1
 
-Ann = SrdIntEnum.from_list('Ann',
-    [c[0] for c in cmds.values()] + ['BIT', 'FIELD', 'WARN'])
+# Don't forget to keep this in sync with 'cmds' is lists.py.
+class Ann:
+    PAGE, GBV, GWV, GSV, GLV, GRPC, SBV, SWV, SSV, RPC, LINE, RECT, FRECT, \
+    PIXEL, GBVA, GWVA, SBVA, GBVR, GWVR, GSVR, GLVR, GRPCR, SBVR, SWVR, SSVR, \
+    RPCR, LINER, RECTR, FRECTR, PIXELR, GBVAR, GWVAR, SBVAR, ACK, NACK, SWVA, \
+    SWVAR, GCV, GCVR, SCV, SCVR, BIT, FIELD, WARN = range(L + 3)
 
 def cmd_annotation_classes():
     return tuple([tuple([cmd[0].lower(), cmd[1]]) for cmd in cmds.values()])
@@ -50,14 +53,14 @@ class Decoder(srd.Decoder):
     annotation_rows = (
         ('bits', 'Bits', (L + 0,)),
         ('fields', 'Fields', (L + 1,)),
-        ('commands', 'Commands', tuple(range(L))),
+        ('commands', 'Commands', tuple(range(len(cmds)))),
         ('warnings', 'Warnings', (L + 2,)),
     )
     options = (
         {'id': 'ms_chan', 'desc': 'Master -> slave channel',
-            'default': 'RX', 'values': ('RX', 'TX'), 'idn':'dec_amulet_ascii_opt_ms_chan'},
+            'default': 'RX', 'values': ('RX', 'TX')},
         {'id': 'sm_chan', 'desc': 'Slave -> master channel',
-            'default': 'TX', 'values': ('RX', 'TX'), 'idn':'dec_amulet_ascii_opt_sm_chan'},
+            'default': 'TX', 'values': ('RX', 'TX')},
     )
 
     def __init__(self):

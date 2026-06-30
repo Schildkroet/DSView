@@ -33,11 +33,11 @@ class Decoder(srd.Decoder):
     outputs = []
     tags = ['IR']
     channels = (
-        {'id': 'ir', 'name': 'IR', 'desc': 'IR data line', 'idn':'dec_ir_rc6_chan_ir'},
+        {'id': 'ir', 'name': 'IR', 'desc': 'IR data line'},
     )
     options = (
         {'id': 'polarity', 'desc': 'Polarity', 'default': 'auto',
-            'values': ('auto', 'active-low', 'active-high'), 'idn':'dec_ir_rc6_opt_polarity'},
+            'values': ('auto', 'active-low', 'active-high')},
     )
     annotations = (
         ('bit', 'Bit'),
@@ -146,7 +146,7 @@ class Decoder(srd.Decoder):
             (self.ir,) = self.wait(conditions)
 
             if len(conditions) == 2:
-                if self.matched & 0b10:
+                if self.matched[1]:
                     self.state = 'IDLE'
 
             self.edges.append(self.samplenum)

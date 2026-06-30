@@ -50,9 +50,9 @@ class Decoder(srd.Decoder):
     tags = ['Sensor']
     options = (
         {'id': 'sensor', 'desc': 'Sensor type', 'default': 'lm75',
-            'values': ('lm75',), 'idn':'dec_lm75_opt_sensor'},
+            'values': ('lm75',)},
         {'id': 'resolution', 'desc': 'Resolution (bits)', 'default': 9,
-            'values': (9, 10, 11, 12), 'idn':'dec_lm75_opt_resolution'},
+            'values': (9, 10, 11, 12)},
     )
     annotations = (
         ('celsius', 'Temperature in degrees Celsius'),

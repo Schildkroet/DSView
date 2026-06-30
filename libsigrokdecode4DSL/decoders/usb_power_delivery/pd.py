@@ -19,10 +19,6 @@
 ## along with this program; if not, see <http://www.gnu.org/licenses/>.
 ##
 
-#
-# 2023-8-28 Extended Message and EPR Message Update
-#
-
 import sigrokdecode as srd
 import struct
 import zlib   # for crc32
@@ -57,9 +53,6 @@ CTRL_TYPES = {
     19: 'FR_Swap',
     20: 'Get_PPS_Status',
     21: 'Get_Country_Codes',
-    22: 'Get_Sink_Cap_Extended',
-    23: 'Get_Source_Info',
-    24: 'Get_Revision',
 }
 
 # Data message type
@@ -71,37 +64,8 @@ DATA_TYPES = {
     5: 'Battery_Status',
     6: 'Alert',
     7: 'Get_Country_Info',
-    8: 'Enter_USB',
-    9: 'EPR_Request',
-    10: 'EPR_Mode',
-    11: 'Source_Info',
-    12: 'Revision',
     15: 'VDM'
 }
-
-# Extended message type
-EXTENDED_TYPES = {
-    1: 'Source_Cap_Extended',
-    2: 'Status',
-    3: 'Get_Battery_Cap',
-    4: 'Get_Battery_Status',
-    5: 'Battery_Cap',
-    6: 'Get_Manufacturer_Info',
-    7: 'Manufacturer_Info',
-    8: 'Security_Request',
-    9: 'Security_Response',
-    10: 'Firmware_Update_Request',
-    11: 'Firmware_Update_Response',
-    12: 'PPS_Status',
-    13: 'Country_Info',
-    14: 'Country_Codes',
-    15: 'Sink_Capabilities_Extended',
-    16: 'Extended_Control',
-    17: 'EPR_Source_Capabilities',
-    18: 'EPR_Sink_Capabilities',
-    30: 'Vendor_Defined_Extended'
-}
-
 
 # 4b5b encoding of the symbols
 DEC4B5B = [
@@ -226,27 +190,6 @@ VDM_CMDS = {
 }
 VDM_ACK = ['REQ', 'ACK', 'NAK', 'BSY']
 
-EPR_MODE_ACTION = {
-        1: 'Enter',
-        2: 'Enter Acknowledged',
-        3: 'Enter Succeeded',
-        4: 'Enter Failed',
-        5: 'Exit'
-}
-EPR_MODE_DATA = {
-        0: 'Unknown cause',
-        1: 'Cable not EPR capable',
-        2: 'Source failed to become Vconn source',
-        3: 'EPR Mode Capable bit not set in RDO',
-        4: 'Source unable to enter EPR Mode at this time',
-        5: 'EPR Mode Capable bit not set in PDO'
-}
-EXT_CONTROL_MSG_TYPES = {
-        1: 'EPR Get Source_Cap',
-        2: 'EPR Get Sink Cap',
-        3: 'EPR KeepAlive',
-        4: 'EPR KeepAlive Ack'
-}
 
 class SamplerateError(Exception):
     pass
@@ -262,14 +205,14 @@ class Decoder(srd.Decoder):
     outputs = ['usb_pd']
     tags = ['PC']
     channels = (
-        {'id': 'cc1', 'name': 'CC1', 'desc': 'Configuration Channel 1', 'idn':'dec_usb_power_delivery_chan_cc1'},
+        {'id': 'cc1', 'name': 'CC1', 'desc': 'Configuration Channel 1'},
     )
     optional_channels = (
-        {'id': 'cc2', 'name': 'CC2', 'desc': 'Configuration Channel 2', 'idn':'dec_usb_power_delivery_opt_chan_cc2'},
+        {'id': 'cc2', 'name': 'CC2', 'desc': 'Configuration Channel 2'},
     )
     options = (
         {'id': 'fulltext', 'desc': 'Full text decoding of packets',
-         'default': 'no', 'values': ('yes', 'no'), 'idn':'dec_usb_power_delivery_opt_fulltext'},
+         'default': 'no', 'values': ('yes', 'no')},
     )
     annotations = (
         ('type', 'Packet Type'),
@@ -301,7 +244,7 @@ class Decoder(srd.Decoder):
     stored_pdos = {}
 
     def get_request(self, rdo):
-        pos = (rdo >> 28) & 0x0F
+        pos = (rdo >> 28) & 7
 
         op_ma = ((rdo >> 10) & 0x3ff) * 0.01
         max_ma = (rdo & 0x3ff) * 0.01
@@ -309,7 +252,7 @@ class Decoder(srd.Decoder):
         mark = self.cap_mark[pos]
         if mark == 3:
             op_v = ((rdo >> 9) & 0x7ff) * 0.02
-            op_a = (rdo & 0xff) * 0.05
+            op_a = (rdo & 0x3f) * 0.05
             t_settings = '%gV %gA' % (op_v, op_a)
         elif mark == 2:
             op_w = ((rdo >> 10) & 0x3ff) * 0.25
@@ -377,19 +320,19 @@ class Decoder(srd.Decoder):
             minv = ((pdo >> 10) & 0x3ff) * 0.05
             maxv = ((pdo >> 20) & 0x3ff) * 0.05
             ma   = ((pdo >>  0) & 0x3ff) * 0.01
-            p = '%g/%gV %gA (%gW)' % (minv, maxv, ma, maxv*ma)
+            p = '%g/%gV %gA' % (minv, maxv, ma)
             self.stored_pdos[idx] = '%s %g/%gV' % (t_name, minv, maxv)
         elif t1 == 3:
             t2 = (pdo >> 28) & 3
             if t2 == 0:
-                t_name = 'PPS'
+                t_name = 'Programmable|PPS'
                 flags = {
                     (1 << 29): 'power_limited',
                 }
                 minv = ((pdo >> 8) & 0xff) * 0.1
                 maxv = ((pdo >> 17) & 0xff) * 0.1
                 ma = ((pdo >> 0) & 0xff) * 0.05
-                p = '%g/%gV %gA (%gW)' % (minv, maxv, ma, maxv*ma)
+                p = '%g/%gV %gA' % (minv, maxv, ma)
                 if (pdo >> 27) & 0x1:
                     p += ' [limited]'
                 self.stored_pdos[idx] = '%s %g/%gV' % (t_name, minv, maxv)
@@ -433,54 +376,10 @@ class Decoder(srd.Decoder):
         # TODO: Check all 0 bits are 0 / emit warnings.
         return 'mode %s' % (mode_name) if idx == 0 else 'invalid BRO'
 
-    def get_hex(self, idx, data):
-        txt = '%02x' % ((data >> 8)&0xFF)
-        txt += ' %02x' % ((data >> 0)&0xFF)
-        txt += ' %02x' % ((data >> 24)&0xFF)
-        txt += ' %02x' % ((data >> 16)&0xFF)
-        return txt
-
-    def get_hex16(self, data):
-        txt = '%02x' % ((data >> 8)&0xFF)
-        txt += ' %02x' % ((data >> 0)&0xFF)
-        return txt
-
-    def get_epr_mode(self, idx, data):
-        txt = EPR_MODE_ACTION[data >> 24]
-        if data >> 24 == 4:
-            txt += '  '
-            txt += EPR_MODE_DATA[(data >> 16) & 0xFF]
-        return txt
-
-    def get_ext_control_type(self, idx, data):
-        txt = EXT_CONTROL_MSG_TYPES[data >> 16]
-        return txt
-
-    def put_ext_head(self, s0, s1):
-        txt = 'Chunked: {}  '.  format(self.chunked)
-        txt += 'Chunk Num: {}  '.format(self.chunk_num)
-        txt += 'Req Chunk: {}  '.format(self.req_chunk)
-        txt += 'Data Size: {}  '.format(self.data_size)
-
-        self.putx(s0, s1, [11, [txt, txt]])
-
     def putpayload(self, s0, s1, idx):
-        t = self.head_type() if self.head_ext() == 0 else 255
-			
+        t = self.head_type()
         txt = '['+str(idx+1)+'] '
-        # Extended Message
-        if t == 255:
-            t = self.head_type()
-
-            if t == 16:
-                txt += self.get_ext_control_type(idx, self.data[idx])
-            elif s1 - s0 < 40:
-                txt += self.get_hex16(self.ext_data[idx] & 0xFFFF)
-            else:
-                txt += self.get_hex(idx, self.ext_data[idx])
-
-        # Others
-        elif t == 2:
+        if t == 2:
             txt += self.get_request(self.data[idx])
         elif t == 1 or t == 4:
             txt += self.get_source_sink_cap(self.data[idx], idx+1, t==1)
@@ -488,14 +387,6 @@ class Decoder(srd.Decoder):
             txt += self.get_vdm(idx, self.data[idx])
         elif t == 3:
             txt += self.get_bist(idx, self.data[idx])
-        elif t == 10:
-            txt += self.get_epr_mode(idx, self.data[idx])
-        elif t == 9:
-            if idx == 0:
-                txt += self.get_request(self.data[idx])
-            else:
-                txt += self.get_source_sink_cap(self.data[idx], idx+1, True)
-
         self.putx(s0, s1, [11, [txt, txt]])
         self.text += ' - ' + txt
 
@@ -505,14 +396,8 @@ class Decoder(srd.Decoder):
         if self.head_data_role() != self.head_power_role():
             role += '/DFP' if self.head_data_role() else '/UFP'
         t = self.head_type()
-        
-        if self.head_ext() == 1:
-            shortm = EXTENDED_TYPES[t] if t in EXTENDED_TYPES else 'EXTENDED???'
-        elif self.head_count() == 0:
-            if t >= 25 and t <= 31:
-                shortm = "reserved"
-            else:
-                shortm = CTRL_TYPES[t]
+        if self.head_count() == 0:
+            shortm = CTRL_TYPES[t]
         else:
             shortm = DATA_TYPES[t] if t in DATA_TYPES else 'DAT???'
 
@@ -520,9 +405,6 @@ class Decoder(srd.Decoder):
         self.putx(0, -1, [ann_type, [longm, shortm]])
         self.text += longm
 
-    def head_ext(self):
-        return (self.head >> 15) & 1
-        
     def head_id(self):
         return (self.head >> 9) & 7
 
@@ -536,7 +418,7 @@ class Decoder(srd.Decoder):
         return ((self.head >> 6) & 3) + 1
 
     def head_type(self):
-        return self.head & 0x1F
+        return self.head & 0xF
 
     def head_count(self):
         return (self.head >> 12) & 7
@@ -634,7 +516,7 @@ class Decoder(srd.Decoder):
         self.half_one = False
         self.start_one = 0
         self.stored_pdos = {}
-        self.cap_mark = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.cap_mark = [0, 0, 0, 0, 0, 0, 0, 0]
 
     def metadata(self, key, value):
         if key == srd.SRD_CONF_SAMPLERATE:
@@ -657,8 +539,6 @@ class Decoder(srd.Decoder):
 
     def decode_packet(self):
         self.data = []
-        self.ext_head = 0
-        self.ext_data = []
         self.idx = 0
         self.text = ''
 
@@ -677,64 +557,17 @@ class Decoder(srd.Decoder):
 
         # Packet header
         self.head = self.get_short()
-        self.putx(self.idx-20, self.idx, [3, ['H:%04X' % (self.head), 'HD']])
+        self.putx(self.idx-20, self.idx, [3, ['H:%04x' % (self.head), 'HD']])
         self.puthead()
 
         # Decode data payload
-        if self.head_ext() == 1:
-            # Extend Header
-            self.ext_head = self.get_short()
-            self.chunked = (self.ext_head >> 15) & 0x01
-            self.chunk_num = (self.ext_head >> 11) & 0x0F
-            self.req_chunk = (self.ext_head >> 10) & 0x01
-            self.data_size = self.ext_head & 0x01FF
+        for i in range(self.head_count()):
+            self.data.append(self.get_word())
+            self.putx(self.idx-40, self.idx,
+                      [4, ['[%d]%08x' % (i, self.data[i]), 'D%d' % (i)]])
+            self.putpayload(self.idx-40, self.idx, i)
 
-            self.putx(self.idx-20, self.idx, [3, ['Ext H:%04X' % (self.ext_head), 'EXHD']])
-            self.put_ext_head(self.idx-20, self.idx)
-            self.idx -= 20
-
-            # Save Data For Calculate CRC
-            for i in range(self.head_count()):
-                self.data.append(self.get_word())
-            self.idx -= (self.head_count()-1) * 40 + 20
-
-            # Extended Message
-            if self.chunk_num == 0:  # First Part of Extended Message Data
-                for i in range(self.head_count()):
-                    if i == self.head_count() - 1:
-                        data = self.get_short()
-                        self.ext_data.append(data)
-
-                        self.putx(self.idx-20, self.idx,[4, ['[%d]%04x' % (i, data), 'D%d' % (i)]])
-                        self.putpayload(self.idx-20, self.idx, i)
-                    else:
-                        data = self.get_word()
-                        self.ext_data.append(data)
-                        self.putx(self.idx-40, self.idx,[4, ['[%d]%08x' % (i, data), 'D%d' % (i)]])
-                        self.putpayload(self.idx-40, self.idx, i)
-
-            else: # Second Part
-                for i in range(self.head_count()):
-                    if i == 0:
-                        data = self.get_short()
-                        self.ext_data.append(data)
-
-                        self.putx(self.idx-20, self.idx,[4, ['[%d]%04x' % (i, data), 'D%d' % (i)]])
-                        self.putpayload(self.idx-20, self.idx, i)
-                    else:
-                        data = self.get_word()
-                        self.ext_data.append(data)
-                        self.putx(self.idx-40, self.idx,[4, ['[%d]%08x' % (i, data), 'D%d' % (i)]])
-                        self.putpayload(self.idx-40, self.idx, i)
-
-        # Control Message or Data Message
-        else:
-            for i in range(self.head_count()):
-                self.data.append(self.get_word())
-                self.putx(self.idx-40, self.idx,[4, ['[%d]%08x' % (i, self.data[i]), 'D%d' % (i)]])
-                self.putpayload(self.idx-40, self.idx, i)
-
-        # CRC check 
+        # CRC check
         self.crc = self.get_word()
         ccrc = self.compute_crc32()
         if self.crc != ccrc:
@@ -762,7 +595,7 @@ class Decoder(srd.Decoder):
         if not self.samplerate:
             raise SamplerateError('Cannot decode without samplerate.')
         while True:
-            self.wait([{0: 'e'}, {1: 'e'}, {'skip': int(self.samplerate/1e3)}])
+            pins = self.wait([{0: 'e'}, {1: 'e'}, {'skip': int(self.samplerate/1e3)}])
 
             # First sample of the packet, just record the start date.
             if not self.startsample:

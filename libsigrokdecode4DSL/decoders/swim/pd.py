@@ -14,8 +14,7 @@
 ## GNU General Public License for more details.
 ##
 ## You should have received a copy of the GNU General Public License
-## along with this program; if not, write to the Free Software
-## Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
+## along with this program; if not, see <http://www.gnu.org/licenses/>.
 ##
 
 import math
@@ -35,10 +34,10 @@ class Decoder(srd.Decoder):
     outputs = []
     tags = ['Debug/trace']
     options = (
-        {'id': 'debug', 'desc': 'Debug', 'default': 'no', 'values': ('yes', 'no') , 'idn':'dec_swim_opt_debug'},
+        {'id': 'debug', 'desc': 'Debug', 'default': 'no', 'values': ('yes', 'no') },
     )
     channels = (
-        {'id': 'swim', 'name': 'SWIM', 'desc': 'SWIM data line', 'idn':'dec_swim_chan_swim'},
+        {'id': 'swim', 'name': 'SWIM', 'desc': 'SWIM data line'},
     )
     annotations = (
         ('bit', 'Bit'),
@@ -297,7 +296,7 @@ class Decoder(srd.Decoder):
                 if self.bit_edge[1][0] != 0 and swim == 0:
                     self.bit_maxlen = self.bit_reflen
 
-                if self.bit_edge[0][0] == 0 and self.bit_edge[1][0] == 1 and self.samplenum - self.bit_edge[0][1] <= self.bit_reflen + 10:
+                if self.bit_edge[0][0] == 0 and self.bit_edge[1][0] == 1 and self.samplenum - self.bit_edge[0][1] <= self.bit_reflen + 2:
                     self.bit(self.bit_edge[0][1], self.bit_edge[1][1], self.samplenum)
 
                 self.bit_edge.pop(0)

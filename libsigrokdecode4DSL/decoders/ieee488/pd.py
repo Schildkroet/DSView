@@ -263,31 +263,31 @@ class Decoder(srd.Decoder):
     tags = ['PC', 'Retro computing']
     channels = (
         {'id': 'dio1' , 'name': 'DIO1/DATA',
-            'desc': 'Data I/O bit 1, or serial data', 'idn':'dec_ieee488_chan_dio1'},
+            'desc': 'Data I/O bit 1, or serial data'},
     )
     optional_channels = (
-        {'id': 'dio2' , 'name': 'DIO2', 'desc': 'Data I/O bit 2', 'idn':'dec_ieee488_opt_chan_dio2'},
-        {'id': 'dio3' , 'name': 'DIO3', 'desc': 'Data I/O bit 3', 'idn':'dec_ieee488_opt_chan_dio3'},
-        {'id': 'dio4' , 'name': 'DIO4', 'desc': 'Data I/O bit 4', 'idn':'dec_ieee488_opt_chan_dio4'},
-        {'id': 'dio5' , 'name': 'DIO5', 'desc': 'Data I/O bit 5', 'idn':'dec_ieee488_opt_chan_dio5'},
-        {'id': 'dio6' , 'name': 'DIO6', 'desc': 'Data I/O bit 6', 'idn':'dec_ieee488_opt_chan_dio6'},
-        {'id': 'dio7' , 'name': 'DIO7', 'desc': 'Data I/O bit 7', 'idn':'dec_ieee488_opt_chan_dio7'},
-        {'id': 'dio8' , 'name': 'DIO8', 'desc': 'Data I/O bit 8', 'idn':'dec_ieee488_opt_chan_dio8'},
-        {'id': 'eoi', 'name': 'EOI', 'desc': 'End or identify', 'idn':'dec_ieee488_opt_chan_eoi'},
-        {'id': 'dav', 'name': 'DAV', 'desc': 'Data valid', 'idn':'dec_ieee488_opt_chan_dav'},
-        {'id': 'nrfd', 'name': 'NRFD', 'desc': 'Not ready for data', 'idn':'dec_ieee488_opt_chan_nrfd'},
-        {'id': 'ndac', 'name': 'NDAC', 'desc': 'Not data accepted', 'idn':'dec_ieee488_opt_chan_ndac'},
-        {'id': 'ifc', 'name': 'IFC', 'desc': 'Interface clear', 'idn':'dec_ieee488_opt_chan_ifc'},
-        {'id': 'srq', 'name': 'SRQ', 'desc': 'Service request', 'idn':'dec_ieee488_opt_chan_srq'},
-        {'id': 'atn', 'name': 'ATN', 'desc': 'Attention', 'idn':'dec_ieee488_opt_chan_atn'},
-        {'id': 'ren', 'name': 'REN', 'desc': 'Remote enable', 'idn':'dec_ieee488_opt_chan_ren'},
-        {'id': 'clk', 'name': 'CLK', 'desc': 'Serial clock', 'idn':'dec_ieee488_opt_chan_clk'},
+        {'id': 'dio2' , 'name': 'DIO2', 'desc': 'Data I/O bit 2'},
+        {'id': 'dio3' , 'name': 'DIO3', 'desc': 'Data I/O bit 3'},
+        {'id': 'dio4' , 'name': 'DIO4', 'desc': 'Data I/O bit 4'},
+        {'id': 'dio5' , 'name': 'DIO5', 'desc': 'Data I/O bit 5'},
+        {'id': 'dio6' , 'name': 'DIO6', 'desc': 'Data I/O bit 6'},
+        {'id': 'dio7' , 'name': 'DIO7', 'desc': 'Data I/O bit 7'},
+        {'id': 'dio8' , 'name': 'DIO8', 'desc': 'Data I/O bit 8'},
+        {'id': 'eoi', 'name': 'EOI', 'desc': 'End or identify'},
+        {'id': 'dav', 'name': 'DAV', 'desc': 'Data valid'},
+        {'id': 'nrfd', 'name': 'NRFD', 'desc': 'Not ready for data'},
+        {'id': 'ndac', 'name': 'NDAC', 'desc': 'Not data accepted'},
+        {'id': 'ifc', 'name': 'IFC', 'desc': 'Interface clear'},
+        {'id': 'srq', 'name': 'SRQ', 'desc': 'Service request'},
+        {'id': 'atn', 'name': 'ATN', 'desc': 'Attention'},
+        {'id': 'ren', 'name': 'REN', 'desc': 'Remote enable'},
+        {'id': 'clk', 'name': 'CLK', 'desc': 'Serial clock'},
     )
     options = (
         {'id': 'iec_periph', 'desc': 'Decode Commodore IEC bus peripherals details',
-            'default': 'no', 'values': ('no', 'yes'), 'idn':'dec_ieee488_opt_iec_periph'},
+            'default': 'no', 'values': ('no', 'yes')},
         {'id': 'delim', 'desc': 'Payload data delimiter',
-            'default': 'eol', 'values': ('none', 'eol'), 'idn':'dec_ieee488_opt_delim'},
+            'default': 'eol', 'values': ('none', 'eol')},
     )
     annotations = (
         ('bit', 'IEC bit'),
@@ -300,7 +300,7 @@ class Decoder(srd.Decoder):
         ('eoi', 'EOI'),
         ('text', 'Talker text'),
         ('periph', 'IEC bus peripherals'),
-        ('warning', 'Warning'),
+        ('warn', 'Warning'),
     )
     annotation_rows = (
         ('bits', 'IEC bits', (ANN_RAW_BIT,)),
@@ -309,7 +309,7 @@ class Decoder(srd.Decoder):
         ('eois', 'EOI', (ANN_EOI,)),
         ('texts', 'Talker texts', (ANN_TEXT,)),
         ('periphs', 'IEC peripherals', (ANN_IEC_PERIPH,)),
-        ('warnings', 'Warnings', (ANN_WARN,)),
+        ('warns', 'Warnings', (ANN_WARN,)),
     )
     binary = (
         ('raw', 'Raw bytes'),
@@ -620,17 +620,16 @@ class Decoder(srd.Decoder):
             # re-use 'iec' decoder logic. Turn ATN to positive logic for
             # easier processing. The data bits get handled during byte
             # accumulation.
-            (dio1,dio2,dio3,dio4,dio5,dio6,dio7,dio8,eoi,dav,nrfd,ndac,ifc,srq,atn,ren,clk)= self.wait(step_wait_conds[step])
-            pins = (dio1,dio2,dio3,dio4,dio5,dio6,dio7,dio8,eoi,dav,nrfd,ndac,ifc,srq,atn,ren,clk)
+            pins = self.wait(step_wait_conds[step])
             data, clk = pins[PIN_DATA], pins[PIN_CLK]
             atn, = self.invert_pins([pins[PIN_ATN]])
 
-            if self.matched & 0b1:
+            if self.matched[0]:
                 # Falling edge on ATN, reset step.
                 step = STEP_WAIT_READY_TO_SEND
 
             if step == STEP_WAIT_READY_TO_SEND:
-                # Don't use self.matched_[1] here since we might come from
+                # Don't use self.matched[1] here since we might come from
                 # a step with different conds due to the code above.
                 if data == 0 and clk == 1:
                     # Rising edge on CLK while DATA is low: Ready to send.
@@ -655,7 +654,7 @@ class Decoder(srd.Decoder):
                     step = STEP_CLOCK_DATA_BITS
                     ss_bit = self.samplenum
             elif step == STEP_CLOCK_DATA_BITS:
-                if self.matched & 0b10:
+                if self.matched[1]:
                     if clk == 1:
                         # Rising edge on CLK; latch DATA.
                         bits.append(data)
@@ -671,10 +670,6 @@ class Decoder(srd.Decoder):
                             if self.curr_eoi:
                                 self.handle_eoi_change(False)
                             step = STEP_WAIT_READY_TO_SEND
-
-    def check_bit(self, d):
-        v = self.matched & (1 << d)
-        return (v >> d) == 1
 
     def decode_parallel(self, has_data_n, has_dav, has_atn, has_eoi, has_srq):
 
@@ -712,19 +707,19 @@ class Decoder(srd.Decoder):
             # captures, many edges fall onto the same sample number. So
             # we process active edges of flags early (before processing
             # data bits), and inactive edges late (after data got processed).
-            if idx_ifc is not None and self.check_bit(idx_ifc) and pins[PIN_IFC] == 1:
+            if idx_ifc is not None and self.matched[idx_ifc] and pins[PIN_IFC] == 1:
                 self.handle_ifc_change(pins[PIN_IFC])
-            if idx_eoi is not None and self.check_bit(idx_eoi) and pins[PIN_EOI] == 1:
+            if idx_eoi is not None and self.matched[idx_eoi] and pins[PIN_EOI] == 1:
                 self.handle_eoi_change(pins[PIN_EOI])
-            if self.check_bit(idx_atn) and pins[PIN_ATN] == 1:
+            if self.matched[idx_atn] and pins[PIN_ATN] == 1:
                 self.handle_atn_change(pins[PIN_ATN])
-            if self.check_bit(idx_dav):
+            if self.matched[idx_dav]:
                 self.handle_dav_change(pins[PIN_DAV], pins[PIN_DIO1:PIN_DIO8 + 1])
-            if self.check_bit(idx_atn) and pins[PIN_ATN] == 0:
+            if self.matched[idx_atn] and pins[PIN_ATN] == 0:
                 self.handle_atn_change(pins[PIN_ATN])
-            if idx_eoi is not None and self.check_bit(idx_eoi) and pins[PIN_EOI] == 0:
+            if idx_eoi is not None and self.matched[idx_eoi] and pins[PIN_EOI] == 0:
                 self.handle_eoi_change(pins[PIN_EOI])
-            if idx_ifc is not None and self.check_bit(idx_ifc) and pins[PIN_IFC] == 0:
+            if idx_ifc is not None and self.matched[idx_ifc] and pins[PIN_IFC] == 0:
                 self.handle_ifc_change(pins[PIN_IFC])
 
             waitcond[idx_dav][PIN_DAV] = 'e'

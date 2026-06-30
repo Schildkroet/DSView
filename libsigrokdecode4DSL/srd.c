@@ -22,12 +22,16 @@
 #include "libsigrokdecode-internal.h" /* First, so we avoid a _POSIX_C_SOURCE warning. */
 #include "libsigrokdecode.h"
 #include <glib.h>
+#include <wchar.h>
 #include "log.h"
 
 /** @cond PRIVATE */
 
 /* Python module search paths */
 SRD_PRIV GSList *searchpaths = NULL;
+
+/* Python home directory, set via srd_set_python_home() before srd_init(). */
+static wchar_t *python_home = NULL;
 
 /* session.c */
 extern SRD_PRIV GSList *sessions;
@@ -205,7 +209,31 @@ SRD_API int srd_init(const char *path)
 	PyImport_AppendInittab("sigrokdecode", PyInit_sigrokdecode);
 
 	/* Initialize the Python interpreter. */
-    Py_InitializeEx(0); 
+	{
+		PyStatus status;
+		PyConfig config;
+
+		PyConfig_InitPythonConfig(&config);
+		config.install_signal_handlers = 0;
+
+		if (python_home) {
+			status = PyConfig_SetString(&config, &config.home, python_home);
+			if (PyStatus_Exception(status)) {
+				srd_err("Failed to set Python home: %s",
+					status.err_msg ? status.err_msg : "unknown error");
+				PyConfig_Clear(&config);
+				return SRD_ERR_PYTHON;
+			}
+		}
+
+		status = Py_InitializeFromConfig(&config);
+		PyConfig_Clear(&config);
+		if (PyStatus_Exception(status)) {
+			srd_err("Failed to initialize Python: %s",
+				status.err_msg ? status.err_msg : "unknown error");
+			return SRD_ERR_PYTHON;
+		}
+	}
 
 #ifdef DECODERS_DIR
 	/* Hardcoded decoders install location, if defined. */
@@ -393,10 +421,16 @@ SRD_API GSList *srd_searchpaths_get(void)
 	return paths;
 }
 
-//set python home directory
+/*
+ * Set python home directory. Must be called before srd_init(), which
+ * consumes this via PyConfig.home. The path is deep-copied since the
+ * caller's buffer may not outlive this call (e.g. callers passing a
+ * pointer into a temporary QString's internal buffer).
+ */
 SRD_API void srd_set_python_home(const wchar_t *path)
 {
-	Py_SetPythonHome((wchar_t*)path);
+	g_free(python_home);
+	python_home = path ? g_memdup2(path, (wcslen(path) + 1) * sizeof(wchar_t)) : NULL;
 }
 
 /** @} */

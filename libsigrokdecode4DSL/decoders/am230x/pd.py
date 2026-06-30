@@ -44,11 +44,11 @@ class Decoder(srd.Decoder):
     outputs = []
     tags = ['IC', 'Sensor']
     channels = (
-        {'id': 'sda', 'name': 'SDA', 'desc': 'Single wire serial data line', 'idn':'dec_am230x_chan_sda'},
+        {'id': 'sda', 'name': 'SDA', 'desc': 'Single wire serial data line'},
     )
     options = (
         {'id': 'device', 'desc': 'Device type',
-            'default': 'am230x', 'values': ('am230x/rht', 'dht11'), 'idn':'dec_am230x_opt_device'},
+            'default': 'am230x', 'values': ('am230x/rht', 'dht11')},
     )
     annotations = (
         ('start', 'Start'),

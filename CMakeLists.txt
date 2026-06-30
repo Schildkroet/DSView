@@ -103,7 +103,7 @@ link_directories(${GLIB_LIBDIR})
 #===============================================================================
 #= python3
 #-------------------------------------------------------------------------------
-find_package(Python3 COMPONENTS Development QUIET)
+find_package(Python3 3.8 COMPONENTS Development QUIET)
 
 if (Python3_FOUND)
     message("----- python3:")

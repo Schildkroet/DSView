@@ -122,7 +122,7 @@ class Decoder(srd.Decoder):
     outputs = ['usb_request']
     options = (
         {'id': 'in_request_start', 'desc': 'Start IN requests on',
-            'default': 'submit', 'values': ('submit', 'first-ack'), 'idn':'dec_usb_request_opt_in_request_start'},
+            'default': 'submit', 'values': ('submit', 'first-ack')},
     )
     tags = ['PC']
     annotations = (
@@ -130,7 +130,7 @@ class Decoder(srd.Decoder):
         ('request-setup-write', 'Setup: Host-to-device'),
         ('request-bulk-read', 'Bulk: Device-to-host'),
         ('request-bulk-write', 'Bulk: Host-to-device'),
-        ('error', 'Unexpected packet'),
+        ('errors', 'Unexpected packets'),
     )
     annotation_rows = (
         ('request-setup', 'USB SETUP', (0, 1)),

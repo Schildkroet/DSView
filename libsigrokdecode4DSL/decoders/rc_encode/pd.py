@@ -82,7 +82,7 @@ class Decoder(srd.Decoder):
     outputs = []
     tags = ['IC', 'IR']
     channels = (
-        {'id': 'data', 'name': 'Data', 'desc': 'Data line', 'idn':'dec_rc_encode_chan_data'},
+        {'id': 'data', 'name': 'Data', 'desc': 'Data line'},
     )
     annotations = (
         ('bit-0', 'Bit 0'),
@@ -101,7 +101,7 @@ class Decoder(srd.Decoder):
     )
     options = (
         {'id': 'remote', 'desc': 'Remote', 'default': 'none', 
-            'values': ('none', 'maplin_l95ar') ,'idn':'dec_rc_encode_opt_remote'},
+            'values': ('none', 'maplin_l95ar')},
     )
 
     def __init__(self):
@@ -126,7 +126,7 @@ class Decoder(srd.Decoder):
 
     def decode(self):
         while True:
-            self.wait({0: 'e'})
+            pin = self.wait({0: 'e'})
             self.state = 'DECODING'
 
             if not self.samplenumber_last: # Set counters to start of signal.
@@ -138,7 +138,7 @@ class Decoder(srd.Decoder):
                 self.bit_count += 1
                 for i in range(0, 4): # Get four pulses for each bit.
                     if i > 0:
-                        self.wait({0: 'e'}) # Get next 3 edges.
+                        pin = self.wait({0: 'e'}) # Get next 3 edges.
                     samples = self.samplenum - self.samplenumber_last
                     self.pulses.append(samples) # Save the pulse width.
                     self.samplenumber_last = self.samplenum
@@ -158,7 +158,7 @@ class Decoder(srd.Decoder):
                     self.put(self.labels[4], self.labels[5], self.out_ann,
                              [7, [self.labels[3]]]) # Write model decode.
                 samples = self.samplenum - self.samplenumber_last
-                self.wait({'skip': 8 * samples}) # Wait for end of sync bit.
+                pin = self.wait({'skip': 8 * samples}) # Wait for end of sync bit.
                 self.es = self.samplenum
                 self.putx([4, ['Sync']]) # Write sync label.
                 self.reset() # Reset and wait for next set of pulses.

@@ -33,12 +33,8 @@ class Decoder(srd.Decoder):
     outputs = []
     tags = ['Networking']
     annotations = (
-        ('field-name-and-val', 'Field name and value'),
-        ('field-val', 'Field value'),
-    )
-    annotation_rows = (
-        ('field-names-and-vals', 'Field names and values', (0,)),
-        ('field-vals', 'Field values', (1,)),
+        ('fieldnames-and-values', 'XFP structure field names and values'),
+        ('fields', 'XFP structure fields'),
     )
 
     def __init__(self):
