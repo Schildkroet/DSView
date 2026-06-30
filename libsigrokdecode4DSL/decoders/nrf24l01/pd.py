@@ -221,7 +221,7 @@ class Decoder(srd.Decoder):
             if b == 0b11111100:
                 return ('CE_FSPI_OFF', None, 1, 1)
             if b == 0b01010011:
-                return ('RST_FSPI', None, 1, 1)			
+                return ('RST_FSPI', None, 1, 1)
 
     def decode_register(self, pos, ann, regid, data):
         '''Decodes a register.
@@ -275,7 +275,7 @@ class Decoder(srd.Decoder):
 
     def finish_command(self, pos):
         '''Decodes the remaining data bytes at position 'pos'.'''
- 
+
         always_hex = True
 
         if self.cmd == 'R_REGISTER':
@@ -312,7 +312,6 @@ class Decoder(srd.Decoder):
             else:
                 self.warn(pos, 'wrong data for "RST_FSPI" command')
             self.putp(pos, self.ann_cmd, self.format_command())
-			
 
     def decode(self, ss, es, data):
         if not self.requirements_met:

@@ -17,7 +17,7 @@
 ## along with this program; if not, see <http://www.gnu.org/licenses/>.
 ##
 
-##  
+##
 ##  2024/7/30 DreamSourceLab : Allow adjustment of data structure and pulse width timing for high and low levels
 ##
 
@@ -89,7 +89,7 @@ timing = {
             False: 1.0,
             True: 1.0,
         },
-        # if time > max , bit = 1, else bit = 0 
+        # if time > max , bit = 1, else bit = 0
         'max': {
             False: 15.0,
             True: 2.0,
@@ -216,7 +216,7 @@ class Decoder(srd.Decoder):
 
     def GetBitValue(self, time):
         if time > timing['LOWR']['max'][self.overdrive]:
-            self.bit = 1 #Long pulse is a 1 bit.  
+            self.bit = 1 #Long pulse is a 1 bit.
         else:
             self.bit = 0 #Short pulse is a 0 bit.
 
@@ -270,7 +270,7 @@ class Decoder(srd.Decoder):
                     # Overdrive reset pulse.
                     self.putfr([2, ['Reset', 'Rst', 'R']])
                     self.state = 'PRESENCE DETECT HIGH'
-                #Frame 
+                #Frame
                 elif time < timing['SLOT']['max'][self.overdrive]:
                     if self.bit_first == True:
                         # Read/write time slot.
