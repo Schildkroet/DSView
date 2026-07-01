@@ -69,10 +69,11 @@ SR_PRIV int ezusb_install_firmware(libusb_device_handle *hdl,
 
 	while (1) {
 		chunksize = fread(buf, 1, 4096, fw);
-		if (chunksize == EOF){
-			sr_err("ezusb_install_firmware(), f-read returns EOF.");
+		if (chunksize == 0 && ferror(fw)) {
+			sr_err("ezusb_install_firmware(), fread() failed: %s.",
+				strerror(errno));
 			result = SR_ERR;
-			break;			
+			break;
 		}
 		if (chunksize == 0)
 			break;

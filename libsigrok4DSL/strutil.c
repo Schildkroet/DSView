@@ -413,6 +413,7 @@ SR_API int sr_parse_period(const char *periodstr, uint64_t *p, uint64_t *q)
 		/* No digits found. */
 		return SR_ERR_ARG;
 
+	*q = 1;
 	if (s && *s) {
 		while (*s == ' ')
 			s++;
@@ -446,6 +447,7 @@ SR_API int sr_parse_voltage(const char *voltstr, uint64_t *p, uint64_t *q)
 		/* No digits found. */
 		return SR_ERR_ARG;
 
+	*q = 1;
 	if (s && *s) {
 		while (*s == ' ')
 			s++;
