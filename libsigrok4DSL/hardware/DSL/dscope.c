@@ -94,6 +94,18 @@ static const int32_t sessions_daq[] = {
     SR_CONF_TRIGGER_MARGIN,
 };
 
+/* DSO_E8-1 logic mode: only what that board implements - no RLE, external
+ * clock, filter or stream mode. */
+static const int32_t hwoptions_logic[] = {
+    SR_CONF_VTH,
+};
+
+static const int32_t sessions_logic[] = {
+    SR_CONF_SAMPLERATE,
+    SR_CONF_LIMIT_SAMPLES,
+    SR_CONF_VTH,
+};
+
 static const uint8_t zero_base_addr = 0x40;
 static const uint8_t zero_big_addr = 0x20;
 
@@ -466,6 +478,37 @@ static uint64_t dso_offset(const struct sr_dev_inst *sdi, const struct sr_channe
                pwm_off + preoff;
 }
 
+/*
+ * DSO_E8-1: drive the board's input attenuator from DSView's probe-factor
+ * buttons (x1 / x10 / x100). A stock DSCope treats the factor as display-only
+ * (a probe's own division); on the E8 it IS the front end's attenuator, and
+ * DSView's factor math then makes the displayed voltages right. Sent as
+ * DSL_CTL_DSO_ATT0 with 0 / 1 / 2, which the firmware maps onto PE2/PE3.
+ * Channel 0 only - the only real front end. No-op for every other device.
+ */
+/* TRUE only for DSO_E8-1, which the DSCope driver also serves. */
+static gboolean is_e8(const struct DSL_context *devc)
+{
+    return devc->profile->dev_caps.vga_id == DSL_VGA_ID_E8;
+}
+
+static int e8_set_attenuator(const struct sr_dev_inst *sdi, const struct sr_channel *ch)
+{
+    struct DSL_context *devc = sdi->priv;
+    struct sr_usb_dev_inst *usb = sdi->conn;
+    struct ctl_wr_cmd wr_cmd;
+
+    if (devc->profile->dev_caps.vga_id != DSL_VGA_ID_E8 || ch == NULL || ch->index != 0)
+        return SR_OK;
+
+    wr_cmd.header.dest = DSL_CTL_DSO_ATT0;
+    wr_cmd.header.offset = 0;
+    wr_cmd.header.size = 1;
+    wr_cmd.data[0] = (ch->vfactor >= 100) ? 2 : (ch->vfactor >= 10) ? 1 : 0;
+
+    return command_ctl_wr(usb->devhdl, wr_cmd);
+}
+
 static uint64_t dso_cmd_gen(const struct sr_dev_inst *sdi, struct sr_channel* ch, int id)
 {
     struct DSL_context *devc;
@@ -501,7 +544,12 @@ static uint64_t dso_cmd_gen(const struct sr_dev_inst *sdi, struct sr_channel* ch
         cmd += ch->index << ch_bit;
         //  --VGAIN
         uint64_t vgain = dso_vga(ch);
-        if ((ch->comb_comp != 0) && (dsl_en_ch_num(sdi) == 1))
+        /* DSO_E8-1: no comb compensation. Its "vgain" is the attenuator code in
+         * byte 1 (see vga_defaults[], DSL_VGA_ID_E8), and adding comb_comp
+         * there - the profile default, or junk read back from the emulated
+         * calibration block - turned V/div into a random attenuator setting. */
+        if ((ch->comb_comp != 0) && (dsl_en_ch_num(sdi) == 1) &&
+            devc->profile->dev_caps.vga_id != DSL_VGA_ID_E8)
             vgain += (uint64_t)(ch->comb_comp) << 8;
         cmd += vgain;
         break;
@@ -702,6 +750,24 @@ static int dso_zero(const struct sr_dev_inst *sdi, gboolean reset)
     struct DSL_context *devc = sdi->priv;
     GSList *l;
     int ret = SR_OK;
+
+    if (devc->profile->dev_caps.feature_caps & CAPS_FEATURE_SELF_ZERO) {
+        /*
+         * The device calibrated itself; there is nothing for this loop to
+         * converge on. Clearing devc->zero is what the Auto Calibration dialog
+         * polls for (SR_CONF_ZERO going false), so without this it waits
+         * forever and cannot be dismissed cleanly.
+         */
+        devc->zero = FALSE;
+        devc->zero_stage = -1;
+        devc->zero_pcnt = 0;
+        devc->zero_branch = FALSE;
+        devc->zero_comb_fgain = FALSE;
+        devc->zero_comb = FALSE;
+        sr_info("%s: device self-calibrates, zero loop skipped", __func__);
+        return SR_OK;
+    }
+
     struct sr_usb_dev_inst *usb;
     struct libusb_device_handle *hdl;
     struct ctl_wr_cmd wr_cmd;
@@ -1111,6 +1177,9 @@ static int config_get(int id, GVariant **data, const struct sr_dev_inst *sdi,
         case SR_CONF_BANDWIDTH_LIMIT:
             *data = g_variant_new_int16(devc->bw_limit);
             break;
+        case SR_CONF_VTH:
+            *data = g_variant_new_double(devc->vth);
+            break;
         case SR_CONF_CALI:
             *data = g_variant_new_boolean(devc->cali);
             break;
@@ -1127,7 +1196,15 @@ static int config_get(int id, GVariant **data, const struct sr_dev_inst *sdi,
             *data = g_variant_new_uint64(devc->profile->dev_caps.dso_depth);
             break;
         case SR_CONF_HW_DEPTH:
-            *data = g_variant_new_uint64(devc->profile->dev_caps.hw_depth / channel_modes[devc->ch_mode].unit_bits);
+            /* DSO_E8-1 in logic mode: report the real capture depth, so the
+             * GUI's duration list stops where the hardware does. The list is
+             * built as hw_depth / samplerate and rebuilt whenever the sample
+             * rate changes, so bounding it here is what keeps every
+             * duration/rate pair the user can select inside memory. */
+            if ((devc->profile->dev_caps.vga_id == DSL_VGA_ID_E8) && (sdi->mode == LOGIC))
+                *data = g_variant_new_uint64(DSL_E8_LOGIC_DEPTH);
+            else
+                *data = g_variant_new_uint64(devc->profile->dev_caps.hw_depth / channel_modes[devc->ch_mode].unit_bits);
             break;
         case SR_CONF_PROBE_VGAIN:
             if (!sdi || !ch)
@@ -1267,6 +1344,7 @@ static int config_set(int id, GVariant *data, struct sr_dev_inst *sdi,
                 __func__, ch->index, ch->vdiv);
     } else if (id == SR_CONF_PROBE_FACTOR) {
         ch->vfactor = g_variant_get_uint64(data);
+        ret = e8_set_attenuator(sdi, ch);   /* DSO_E8-1: the factor is its attenuator */
         sr_dbg("%s: setting Factor of channel %d to %d", __func__,
                ch->index, ch->vfactor);
     } else if (id == SR_CONF_TIMEBASE) {
@@ -1349,6 +1427,12 @@ static int config_set(int id, GVariant *data, struct sr_dev_inst *sdi,
         if(sdi->mode == DSO) {
             ret = dsl_wr_dso(sdi, dso_cmd_gen(sdi, 0, SR_CONF_SAMPLERATE));
         }
+    } else if (id == SR_CONF_VTH) {
+        /* DSO_E8-1 logic threshold. Same register encoding as dslogic.c's
+         * non-MAX25 path; the firmware converts it back to volts for DAC
+         * channel C. */
+        devc->vth = g_variant_get_double(data);
+        ret = dsl_wr_reg(sdi, VTH_ADDR, (uint8_t)(devc->vth/3.3*(1.5/2.5)*255));
     } else if (id == SR_CONF_INSTANT) {
         devc->instant = g_variant_get_boolean(data);
         if (sdi->mode == DSO && dsl_en_ch_num(sdi) != 0) {
@@ -1403,6 +1487,30 @@ static int config_set(int id, GVariant *data, struct sr_dev_inst *sdi,
                 }
             }
             devc->limit_samples = devc->cur_samplerate;
+        } else if (sdi->mode == LOGIC) {
+            /* DSO_E8-1: the DSCope driver had no logic mode. The E8's 8 logic
+             * probes run in buffer mode (DSL_BUFFER200x8): the firmware
+             * captures into SDRAM and uploads LA_CROSS_DATA after a header,
+             * which dsl.c's common transfer path already understands. */
+            devc->op_mode = DS_OP_NORMAL;
+            devc->test_mode = SR_TEST_NONE;
+            devc->instant = FALSE;
+            for (i = 0; i < ARRAY_SIZE(channel_modes); i++) {
+                if (channel_modes[i].mode == LOGIC &&
+                    devc->profile->dev_caps.channels & (1 << i)) {
+                    devc->ch_mode = channel_modes[i].id;
+                    num_probes = channel_modes[i].num;
+                    devc->stream = channel_modes[i].stream;
+                    break;
+                }
+            }
+            devc->limit_samples = devc->profile->dev_caps.default_samplelimit;
+
+            /* The threshold is only ever sent on change, so give the firmware
+             * a starting value: the DSCope context never sets one. */
+            if (devc->vth <= 0)
+                devc->vth = 1.65;
+            ret = dsl_wr_reg(sdi, VTH_ADDR, (uint8_t)(devc->vth/3.3*(1.5/2.5)*255));
         }
         assert(num_probes != 0);
         dsl_adjust_probes(sdi, num_probes);
@@ -1753,8 +1861,12 @@ static int config_list(int key, GVariant **data, const struct sr_dev_inst *sdi,
 
     switch (key) {
     case SR_CONF_DEVICE_OPTIONS:
-        *data = g_variant_new_from_data(G_VARIANT_TYPE("ai"),
-                hwoptions, ARRAY_SIZE(hwoptions)*sizeof(int32_t), TRUE, NULL, NULL);
+        if (sdi && sdi->mode == LOGIC)
+            *data = g_variant_new_from_data(G_VARIANT_TYPE("ai"),
+                    hwoptions_logic, ARRAY_SIZE(hwoptions_logic)*sizeof(int32_t), TRUE, NULL, NULL);
+        else
+            *data = g_variant_new_from_data(G_VARIANT_TYPE("ai"),
+                    hwoptions, ARRAY_SIZE(hwoptions)*sizeof(int32_t), TRUE, NULL, NULL);
         break;
     case SR_CONF_DEVICE_SESSIONS:
         if (sdi->mode == DSO)
@@ -1763,6 +1875,9 @@ static int config_list(int key, GVariant **data, const struct sr_dev_inst *sdi,
         else if (sdi->mode == ANALOG)
             *data = g_variant_new_from_data(G_VARIANT_TYPE("ai"),
                     sessions_daq, ARRAY_SIZE(sessions_daq)*sizeof(int32_t), TRUE, NULL, NULL);
+        else if (sdi->mode == LOGIC)
+            *data = g_variant_new_from_data(G_VARIANT_TYPE("ai"),
+                    sessions_logic, ARRAY_SIZE(sessions_logic)*sizeof(int32_t), TRUE, NULL, NULL);
         break;
     case SR_CONF_OPERATION_MODE: 
         *data = g_variant_new_uint64((uint64_t)&opmode_list);
@@ -1954,8 +2069,18 @@ static int receive_data(int fd, int revents, const struct sr_dev_inst *sdi)
         dso_tune(sdi);
     }
 
-    // progress check
-    if ((devc->empty_poll_count > MAX_EMPTY_POLL) && (devc->status == DSL_START)) {
+    /*
+     * Progress check.
+     *
+     * DSL_DATA is included deliberately. Gating on DSL_START alone stops the
+     * poll the moment receive_header() runs, which for a buffer-mode device is
+     * as soon as the capture finishes - so the whole transfer phase went
+     * unreported. A device that distinguishes the two phases (see DSO_E8-1,
+     * which sets trig_hit during the transfer so get_capture_status() takes its
+     * countdown branch) can then report both.
+     */
+    if ((devc->empty_poll_count > (is_e8(devc) ? MAX_EMPTY_POLL_E8 : MAX_EMPTY_POLL)) &&
+        (devc->status == DSL_START || devc->status == DSL_DATA)) {
         devc->mstatus.captured_cnt0 = 0;
         rd_cmd.header.dest = DSL_CTL_I2C_STATUS;
         rd_cmd.header.offset = 0;
@@ -1963,6 +2088,21 @@ static int receive_data(int fd, int revents, const struct sr_dev_inst *sdi)
         rd_cmd.data = (unsigned char*)&devc->mstatus;
         if ((ret = command_ctl_rd(usb->devhdl, rd_cmd)) != SR_OK)
             sr_err("Failed to get progress infos.");
+        else if (is_e8(devc)) {
+            /* Raw bytes exactly as the device returned them, before any
+             * interpretation, so a board under test can be compared byte for
+             * byte against known-good hardware. Bring-up aid for DSO_E8-1: it
+             * runs at the poll rate, so it stays off for stock hardware. */
+            const unsigned char *b = (const unsigned char *)&devc->mstatus;
+            sr_info("PROGRESS-RAW: devc_status=%d bytes=%02X %02X %02X %02X "
+                    "(trig_hit=%02X cnt3=%02X cnt2=%02X cnt1=%02X) limit_samples=%llu actual_samples=%llu en_ch=%d instant=%d",
+                    devc->status, b[0], b[1], b[2], b[3],
+                    devc->mstatus.trig_hit, devc->mstatus.captured_cnt3,
+                    devc->mstatus.captured_cnt2, devc->mstatus.captured_cnt1,
+                    (unsigned long long)devc->limit_samples,
+                    (unsigned long long)devc->actual_samples,
+                    dsl_en_ch_num(sdi), devc->instant);
+        }
 
         devc->empty_poll_count = 0;
     }
@@ -1986,10 +2126,11 @@ static gpointer usb_event_thread(gpointer data)
 
     struct timeval tv;
     while (!devc->usb_thread_quit) {
-        int completed = 1;
         tv.tv_sec = 0;
         tv.tv_usec = 1000 * dsl_get_timeout(sdi);
-        libusb_handle_events_timeout_completed(sr_ctx->libusb_ctx, &tv, &completed);
+        /* Wait for any USB event. A nonzero completion flag skips the wait
+         * entirely and makes this thread busy-loop while awaiting a trigger. */
+        libusb_handle_events_timeout_completed(sr_ctx->libusb_ctx, &tv, NULL);
     }
 
     sr_dbg("%s: exit usb event handling thread.", __func__);
@@ -2027,6 +2168,11 @@ static int dev_acquisition_start(struct sr_dev_inst *sdi, void *cb_data)
     devc->num_transfers = 0;
     devc->submitted_transfers = 0;
     devc->actual_samples = (devc->limit_samples + SAMPLES_ALIGN) & ~SAMPLES_ALIGN;
+    /* receive_transfer() ends a LOGIC buffer-mode acquisition on
+     * num_bytes >= actual_bytes; dslogic.c sets both here, and the DSCope
+     * driver never needed them before DSO_E8-1 gave it a logic mode. */
+    devc->num_bytes = 0;
+    devc->actual_bytes = devc->actual_samples / DSLOGIC_ATOMIC_SAMPLES * dsl_en_ch_num(sdi) * DSLOGIC_ATOMIC_SIZE;
 	devc->abort = FALSE;
     devc->mstatus_valid = FALSE;
     devc->mstatus.captured_cnt0 = 0;
@@ -2112,7 +2258,17 @@ static int dev_acquisition_start(struct sr_dev_inst *sdi, void *cb_data)
             ret = dsl_wr_dso(sdi, dso_cmd_gen(sdi, probe, SR_CONF_PROBE_OFFSET));
             if (ret != SR_OK)
                 sr_err("%s: Set OFFSET of channel %d command failed!", __func__, probe->index);
-            probe->hw_offset = probe->offset;
+            /* DSO_E8-1: the board has no programmable offset, so its zero code
+             * never follows the GUI's offset. Instant mode parses no status
+             * block, so this value is the ONLY hw_offset it ever gets; using the
+             * GUI offset here made single captures read a different voltage
+             * than continuous ones (which take DSL_E8_ZERO_CODE from the status
+             * block) for the same signal. */
+            probe->hw_offset = (devc->profile->dev_caps.vga_id == DSL_VGA_ID_E8) ? DSL_E8_ZERO_CODE : probe->offset;
+            /* DSO_E8-1: re-send the attenuator with the other per-channel
+             * settings, so a reconnect or session load cannot leave it stale. */
+            if (e8_set_attenuator(sdi, probe) != SR_OK)
+                sr_err("%s: Set attenuator of channel %d command failed!", __func__, probe->index);
         }
     }
 

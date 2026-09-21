@@ -37,6 +37,7 @@
 
 #include "view/analogsignal.h"
 #include "view/dsosignal.h"
+#include "view/dsldial.h"
 #include "view/logicsignal.h"
 #include "view/groupsignal.h"
 #include "view/decodetrace.h"
@@ -842,6 +843,23 @@ namespace pv
             else
                 progress = captured_cnt * 100.0 / sample_limits;
 
+            /* How the raw device bytes become the number on screen. Pair this
+             * with the PROGRESS-RAW line from the DSL driver: that shows what
+             * the device sent, this shows what was made of it. DSO_E8-1 only -
+             * this runs on the viewport's paint path, so stock hardware must
+             * not pay for it. */
+            if (_device_agent.is_hardware_e8()) {
+                dsv_info("PROGRESS-CALC: raw cnt3..0=%02X %02X %02X %02X trig_hit=%02X"
+                         " -> captured_cnt=%llu  limits=%llu  signals=%d dso_ch=%d mode=%d"
+                         "  triggered=%d  progress=%d",
+                         status.captured_cnt3, status.captured_cnt2,
+                         status.captured_cnt1, status.captured_cnt0, status.trig_hit,
+                         (unsigned long long)captured_cnt,
+                         (unsigned long long)sample_limits,
+                         (int)_signals.size(), (int)get_ch_num(SR_CHANNEL_DSO),
+                         mode, (int)triggered, progress);
+            }
+
             if (progress == 100 && mode == LOGIC && _capture_data->get_logic()->have_data() == false){
                 progress = 0;
             }
@@ -1408,6 +1426,24 @@ namespace pv
         if (packet->type != SR_DF_END &&
             packet->status != SR_PKT_OK)
         {
+            if (packet->type == SR_DF_TRIGGER && packet->payload != NULL)
+            {
+                const ds_trigger_pos *pos = (const ds_trigger_pos *)packet->payload;
+                dsv_warn("Invalid data packet received: type %d (trigger), status %d, work mode %d, "
+                         "check_id 0x%08X, real_pos %u, ram_saddr %u, remain_cnt 0x%08X%08X",
+                         packet->type, packet->status, _device_agent.get_work_mode(),
+                         pos->check_id, pos->real_pos, pos->ram_saddr,
+                         pos->remain_cnt_h, pos->remain_cnt_l);
+            }
+            else
+            {
+                dsv_warn("Invalid data packet received: type %d, status %d (%s), work mode %d",
+                         packet->type, packet->status,
+                         packet->status == SR_PKT_SOURCE_ERROR ? "source error" :
+                         packet->status == SR_PKT_DATA_ERROR ? "data error" : "unknown",
+                         _device_agent.get_work_mode());
+            }
+
             _error = Pkt_data_err;
             _callback->session_error();
             return;
@@ -1468,6 +1504,11 @@ namespace pv
 
             if (packet->status != SR_PKT_OK)
             {
+                dsv_warn("Invalid end packet received: status %d (%s), work mode %d",
+                         packet->status,
+                         packet->status == SR_PKT_SOURCE_ERROR ? "source error" :
+                         packet->status == SR_PKT_DATA_ERROR ? "data error" : "unknown",
+                         _device_agent.get_work_mode());
                 _error = Pkt_data_err;
                 _callback->session_error();
             }
@@ -1828,10 +1869,23 @@ namespace pv
         if (n == 0 || buf == NULL)
             return;
 
+        const int height = sig->get_view_rect().height();
+        view::dslDial *vdial = sig->get_vDial();
+        if (height <= 0 || vdial == NULL)
+            return;
+
         RefWave rw;
         rw.index = sig->get_index();
         rw.samples.assign(buf, buf + n);
         rw.samplerate = data->samplerate();
+        // Freeze the calibration the waveform is displayed with right now:
+        // on screen a code sits (code - hw_offset) * scale pixels below zero,
+        // and one division (height / VDIVS pixels) is vdiv * probe factor mV.
+        // get_scale() already includes the stop-scale compensation for a V/div
+        // changed after the capture, so this matches what the user sees.
+        rw.hw_offset = sig->get_hw_offset();
+        rw.mv_per_code = sig->get_scale() * (double)vdial->get_value()
+                         * vdial->get_factor() * DS_CONF_DSO_VDIVS / height;
         rw.colour = sig->get_colour();
         rw.name = QString("Ref %1").arg((int)_ref_waves.size() + 1);
         _ref_waves.push_back(rw);

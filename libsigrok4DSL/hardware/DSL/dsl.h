@@ -21,7 +21,7 @@
 #ifndef LIBDSL_HARDWARE_DSL_H
 #define LIBDSL_HARDWARE_DSL_H
 
-#include <glib.h> 
+#include <glib.h>
 #include "../../libsigrok-internal.h"
 #include "command.h"
 
@@ -35,12 +35,26 @@
 #include <sys/stat.h>
 #include <inttypes.h>
 
- 
+
 #define USB_INTERFACE		0
 #define USB_CONFIGURATION	1
 #define NUM_TRIGGER_STAGES	16
 #define NUM_SIMUL_TRANSFERS	64
+/*
+ * How many idle receive_data() ticks pass before the device is polled for
+ * capture progress. The tick itself is dsl_get_timeout(), 20 ms in buffer mode,
+ * so the poll period is (limit + 1) * 20 ms.
+ *
+ * 16 is 340 ms, which over a sub-second capture yields two updates - the
+ * progress bar reads 0, then ~50, then 100. DSO_E8-1 needs a much shorter
+ * period for the bar to track at all, but each poll costs a control-transfer
+ * pair on a bus that is already carrying the capture, so DreamSourceLab
+ * hardware keeps the original period. Only dscope.c chooses between the two
+ * (see e8_empty_poll_limit()); dslogic.c, which DSO_E8-1 never reaches, uses
+ * MAX_EMPTY_POLL directly.
+ */
 #define MAX_EMPTY_POLL      16
+#define MAX_EMPTY_POLL_E8   2
 
 #define DSL_REQUIRED_VERSION_MAJOR	2
 #define DSL_REQUIRED_VERSION_MINOR	0
@@ -77,6 +91,19 @@
 #define CAPS_FEATURE_MAX25_VTH (1 << 13)
 // security check
 #define CAPS_FEATURE_SECURITY (1 << 14)
+
+/**
+ * The device performs its own zero/offset calibration in firmware.
+ *
+ * dso_zero() here drives a VGA, per-channel preoff registers and a comb
+ * compensation table. A device without that hardware can never satisfy the
+ * loop, so it would spin forever and the Auto Calibration dialog would wait
+ * with it. For such a device the routine completes immediately and the stored
+ * result is whatever the firmware itself arrived at.
+ *
+ * Not an upstream DreamSourceLab capability - added for DSO_E8-1.
+ */
+#define CAPS_FEATURE_SELF_ZERO (1 << 15)
 /* end */
 
 
@@ -260,6 +287,87 @@ static const uint64_t samplerates400[] = {
     0,
 };
 
+/*
+ * DSO_E8-1: the only rates MCO1 can actually produce.
+ *
+ * PIXCLK is MCO1 looped back through the front end, and MCO1 is an integer
+ * divide (1..15) of one of PLL1Q 192 MHz / HSI 64 / HSI48 48 / HSE 24. Offering
+ * anything else would let the GUI pick a rate the hardware silently rounds,
+ * making the timebase wrong with no indication.
+ *
+ * Each entry also maps to a UNIQUE ceil(max_samplerate / rate / channels)
+ * divider for both 1- and 2-channel configurations, which is how the firmware
+ * recovers the requested rate from the settings block.
+ *
+ * 8..32 MHz. The top is the DSO front end's maximum sample rate, not an MCO1
+ * limit - it can reach 48, 64 and 96 MHz, but the analog path cannot follow.
+ * The bottom is a floor on how long a capture may take: at 8 MHz a full 8 MiB
+ * record already runs 1.05 s, and slower rates stretch that far enough that the
+ * host starts treating the device as unresponsive.
+ */
+/*
+ * DSO_E8-1 vertical ranges.
+ *
+ * These are the volts per division the front end ACTUALLY delivers, not round
+ * nominal values: its gain is 1.1x what a straight reading of the ADC's code
+ * range would imply, so a 1 V signal on a nominal 1 V/div range would read as
+ * 1.1 V. The entry is nominal/1.1.
+ *
+ * Why here and not in ref_min/ref_max, which look like the natural place: that
+ * pair defines the CODE domain, and DsoSignal::ratio2value() maps the vertical
+ * position and trigger level through it. Widening the span past 0..255 to
+ * absorb the gain would push both out of the range the 8-bit samples can
+ * express. The volts-per-division list is the honest place for a gain that the
+ * analog path cannot trim away.
+ *
+ * ONE range, because the board has no variable gain - only the attenuator
+ * (x1 / x10 / x100), and that is driven by DSView's probe-factor buttons (see
+ * e8_set_attenuator() in dscope.c). DSView multiplies the displayed V/div by
+ * the selected factor, so this single x1 range reads as 182 mV, 1.82 V and
+ * 18.2 V per division at x1, x10 and x100 - each one the hardware really
+ * delivers. DSView converts samples to volts through V/div, so any further
+ * range would only relabel the same samples wrongly.
+ *
+ * At x1 the 2.0 V ADC span over DS_CONF_DSO_VDIVS (10) divisions is 200 mV/div
+ * nominal, i.e. 200 / 1.1 = 181.8 -> 182 mV/div after the front end's 1.1 gain
+ * (0.1% rounding; integer mV). That assumes the gain holds at x1 - verify with a
+ * known amplitude at 182 mV/div. Re-derive if the gain ever changes, and keep
+ * vga_defaults[]'s DSL_VGA_ID_E8 key equal to this entry.
+ */
+static const uint64_t vdivs_dso_e8[] = {
+    SR_mV(218),     /* x1; the probe factor scales it to 1.82 V / 18.2 V (nominal 200 mV / 1.1) */
+    0,
+};
+
+static const uint64_t samplerates_dso_e8[] = {
+    SR_MHZ(2),
+    SR_MHZ(4),
+    SR_MHZ(8),
+    SR_MHZ(12),
+    SR_MHZ(16),
+    SR_MHZ(24),
+    SR_MHZ(32),
+    0,
+};
+
+/*
+ * DSO_E8-1 logic mode: samplerates_dso_e8[] plus 64 MHz (MCO1 = PLL1Q 192 / 3).
+ * The 32 MHz ceiling there belongs to the analog front end, which the logic
+ * probes bypass. Picked by dsl_samplerates() for this device in a LOGIC channel
+ * mode. MUST match DSL_LOGIC_SAMPLE_RATES in the firmware's DSL_Cfg.h.
+ */
+static const uint64_t samplerates_logic_e8[] = {
+    SR_MHZ(2),
+    SR_MHZ(4),
+    SR_MHZ(8),
+    SR_MHZ(12),
+    SR_MHZ(16),
+    SR_MHZ(24),
+    SR_MHZ(32),
+    SR_MHZ(64),
+    0,
+};
+
 static const uint64_t samplerates1000[] = {
     SR_HZ(10),
     SR_HZ(20),
@@ -301,6 +409,39 @@ struct DSL_vga {
     uint16_t preoff;
     uint16_t preoff_comp;
 };
+/* DSO_E8-1's USB identity. dsl_check_conf_profile() accepts these strings
+ * instead of DreamSourceLab's, but only for this VID:PID - every other device
+ * still has to present the original manufacturer/product strings. Must match
+ * string_desc_arr[] in the firmware's HAL/USB/usb_descriptors.c. */
+#define DSL_E8_VID          0x2A0E
+#define DSL_E8_PID          0x00E8
+#define DSL_E8_MANUFACTURER "Hermelin Labs"
+#define DSL_E8_PRODUCT      "Hermelin MSO-E8"
+
+/* DSO_E8-1's VGA table id - chosen well clear of the DreamSourceLab ids (1..5). */
+#define DSL_VGA_ID_E8 0xE8
+
+/* DSO_E8-1's zero code: the sample value 0 V lands on. The board has no
+ * programmable offset (it ignores SR_CONF_PROBE_OFFSET), so this is fixed -
+ * unlike a DSCope, whose hardware moves the signal to the GUI's offset. Must
+ * equal the hw_offset the firmware reports in every status block
+ * (DSL_MSTAT_HW_OFFSET), or instant and continuous captures disagree. */
+#define DSL_E8_ZERO_CODE 128
+
+/* DSO_E8-1 logic capture depth, in SAMPLES.
+ *
+ * The board captures the 8 DCMI data lines into SDRAM as one byte per sample -
+ * all eight lines at once, so the capacity does not change with how many
+ * channels are enabled in the GUI. It is the firmware's LOGIC_BUFFER_SIZE
+ * (Libraries/Logic/Logic_Cfg.h), which is DCMI_CAPTURE_MAX_BYTES, 8 MiB.
+ *
+ * hw_depth cannot carry this: it is shared with DSO mode, where DSView divides
+ * it by unit_bits and the enabled channel count, and the value that lands on
+ * 8 Mi samples there (SR_MB(64)) overstates the logic duration list by 8x -
+ * offering 2.1 s at 32 MHz against a real 262 ms. Everything past the real
+ * depth is zero padding on the trace. */
+#define DSL_E8_LOGIC_DEPTH (8 * 1024 * 1024)
+
 static const struct DSL_vga vga_defaults[] = {
     {1, 10,   0x162400, (32<<10)+558, (32<<10)+558},
     {1, 20,   0x14C000, (32<<10)+558, (32<<10)+558},
@@ -347,6 +488,10 @@ static const struct DSL_vga vga_defaults[] = {
     {5, 1000, 0x69D00,  60, 1024-900-60},
     {5, 2000, 0x41D00,  60, 1024-900-60},
 
+    /* DSO_E8-1: no VGA, and V/div no longer moves hardware - the attenuator
+     * follows the probe-factor buttons instead (e8_set_attenuator()). One
+     * entry for its one range, so dso_vga()'s lookup still resolves. */
+    {DSL_VGA_ID_E8, 182,   0, 0, 0},   /* key == vdivs_dso_e8[0] */
     {0, 0, 0, 0, 0}
 };
 
@@ -1135,6 +1280,85 @@ static const struct DSL_profile supported_DSCope[] = {
       SR_HZ(0)}
     },
 
+    /*
+     * DSO_E8-1 - Hermelin Labs STM32H750 instrument, not DreamSourceLab hardware.
+     *
+     * Runs its own firmware (project DSO_E8-1, Libraries/DSL) speaking this
+     * protocol directly: an STM32H750 with an AD9280 front end and 8 logic
+     * probes, no FX2 and no FPGA. It borrows DreamSourceLab's vendor ID with a
+     * PID outside their product range - fine for a one-off board, but it means
+     * this entry must never be sent upstream.
+     *
+     * Consequences of there being no FPGA and no FX2:
+     *   - firmware/fpga_bit33/fpga_bit50 are NULL. The device reports
+     *     bmFPGA_DONE from DSL_CTL_HW_STATUS, so dsl_dev_open() takes the
+     *     "already configured" branch and never looks for those files.
+     *   - The logic threshold (SR_CONF_VTH) is a plain VTH_ADDR register write
+     *     that the firmware turns into DAC channel C; it needs no feature bit.
+     *   - CAPS_FEATURE_BUF only: no SEEP/NVM, no security block, no
+     *     ADF4360. Advertising those would send the open sequence off talking
+     *     to hardware that is not there.
+     *
+     * The board has ONE analog channel, but DSL_DSO200x2 is a two-channel mode
+     * and the firmware pads CH1 to mid-scale. A dedicated single-channel mode
+     * would be more honest; it would also need a new channel_modes[] entry and
+     * an audit of whatever in the UI assumes DSO channels come in pairs.
+     */
+    {0x2A0E, 0x00E8, LIBUSB_SPEED_HIGH, "Hermelin Labs", "MSO-E8", NULL,
+     NULL,
+     NULL,
+     NULL,
+     /* LOGIC: the 8 DCMI data lines as logic probes, served by dscope.c's
+      * DSO_E8-1 logic branch (see SR_CONF_DEVICE_MODE there) in
+      * DSL_BUFFER200x8 - capture to SDRAM, then upload. */
+     {CAPS_MODE_DSO | CAPS_MODE_LOGIC,
+      /* ZERO exposes the auto-calibration option (SR_CONF_HAVE_ZERO) and 20M the
+       * bandwidth-limit one (SR_CONF_BANDWIDTH); without them DSView hides both
+       * for this device. The board backs both: the firmware intercepts zero mode
+       * to run its own routine, and drives PB8 for the bandwidth filter. */
+      CAPS_FEATURE_BUF | CAPS_FEATURE_ZERO | CAPS_FEATURE_20M | CAPS_FEATURE_SELF_ZERO,
+      (1 << DSL_DSO200x2) | (1 << DSL_BUFFER200x8),
+      2,
+      /* hw_depth: bounds the GUI's sample-depth list via
+       *     limit_samples = hw_depth / unit_bits / enabled_channels
+       * Sized to the board's real acquisition limit, DCMI_CAPTURE_MAX_BYTES
+       * (8 MiB, reached with the DMA's double-buffer mode). This must track
+       * that constant: advertising more than the hardware can capture leaves
+       * the excess as padding, which shows up as a trace that is mostly flat. */
+      SR_MB(64),
+      /* dso_depth: the size of ONE instant-mode ("single trigger") USB
+       * transfer, NOT a capacity. get_buffer_size() returns it verbatim and
+       * receive_transfer() resubmits that same buffer until the acquisition's
+       * bytes have all arrived, so it is also the granularity of the transfer
+       * progress bar - Viewport::get_captured_progress() steps once per
+       * completed transfer.
+       *
+       * Matching it to the full 8 MiB acquisition meant everything arrived in
+       * a single transfer, so the bar only ever painted 100%. 256 KiB gives 32
+       * steps. DSCope U3P100 does the same: SR_Mn(2) against a depth three
+       * orders of magnitude larger.
+       *
+       * Chunking is invisible to the firmware - it streams one byte sequence
+       * into the bulk endpoint either way, and instant mode parses no status
+       * block out of the individual transfers (receive_transfer() synthesises
+       * mstatus itself and skips get_measure() until the tail).
+       */
+      262144,
+      0,
+      vdivs_dso_e8,
+      samplerates_dso_e8,  /* only what MCO1 can actually generate */
+      DSL_VGA_ID_E8,       /* V/div -> attenuator code, see vga_defaults[] */
+      DSL_DSO200x2,
+      SR_MHZ(16),       /* MCO1 power-on default = PLL1Q 192 MHz / 12 */
+      SR_Mn(1),
+      930,
+      1024-930,
+      10,
+      245,
+      22,
+      SR_HZ(0),
+      SR_HZ(0)}
+    },
     { 0, 0, LIBUSB_SPEED_UNKNOWN, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}
 };
 
@@ -1398,6 +1622,7 @@ static const struct DSL_adc_config adc_power_up[] = {
 SR_PRIV int dsl_adjust_probes(struct sr_dev_inst *sdi, int num_probes);
 SR_PRIV int dsl_setup_probes(struct sr_dev_inst *sdi, int num_probes);
 SR_PRIV const GSList *dsl_mode_list(const struct sr_dev_inst *sdi);
+SR_PRIV const uint64_t *dsl_samplerates(const struct DSL_context *devc);
 SR_PRIV void dsl_adjust_samplerate(struct DSL_context *devc);
 
 SR_PRIV int dsl_en_ch_num(const struct sr_dev_inst *sdi);

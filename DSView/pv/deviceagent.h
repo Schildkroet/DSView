@@ -87,6 +87,15 @@ public:
         return is_hardware() && _driver_name == "DSCope";
     }
 
+    // DSO_E8-1 is served by the DSCope driver, so driver_name cannot tell it
+    // apart; name() is the profile's model string (sr_dev_inst_new()), which
+    // must stay in step with supported_DSCope[]'s entry in dsl.h. Only for
+    // behaviour this one board needs - never as a stand-in for a capability
+    // other hardware could also have.
+    inline bool is_hardware_e8(){
+        return is_hardware() && _dev_name == "MSO-E8";
+    }
+
     inline void set_callback(IDeviceAgentCallback *callback){
         _callback = callback;
     }

@@ -358,6 +358,10 @@ namespace pv
 
         void SamplingBar::set_sample_rate(uint64_t sample_rate)
         {
+            /* The list is ascending, so walking it backwards picks the highest
+             * rate that does not overrun the requested one. */
+            int index = -1;
+
             for (int i = _sample_rate.count() - 1; i >= 0; i--)
             {
                 uint64_t cur_index_sample_rate = _sample_rate.itemData(
@@ -365,10 +369,26 @@ namespace pv
                                                      .value<uint64_t>();
                 if (sample_rate >= cur_index_sample_rate)
                 {
-                    _sample_rate.setCurrentIndex(i);
+                    index = i;
                     break;
                 }
             }
+
+            /* Nothing in the list is slow enough - the device cannot fill the
+             * screen at this timebase. Take its slowest rate, which fills the
+             * most of it. Leaving the selection untouched (the original
+             * behaviour) made the rate depend on which timebases had been
+             * visited on the way here rather than on the current one: a device
+             * whose slowest rate is megahertz-class, such as DSO_E8-1 at 2 MHz,
+             * has a wide band of timebases in this case, and scrolling into it
+             * from 1 ms/div left a rate ten times higher than scrolling in from
+             * 10 ms/div. */
+            if (index < 0 && _sample_rate.count() > 0)
+                index = 0;
+
+            if (index >= 0)
+                _sample_rate.setCurrentIndex(index);
+
             commit_settings();
         }
 
@@ -548,7 +568,34 @@ namespace pv
             else if (rle_support)
                 duration = rle_depth / (samplerate * (1.0 / SR_SEC(1)));
             else
+            {
                 duration = hw_duration;
+
+                // DSO_E8-1 only: round the longest duration to a whole number
+                // in the unit it is shown in (131.072 ms -> 131 ms), rather
+                // than listing the raw hw_depth / samplerate.
+                //
+                // Restricted to this board, and to units below a second,
+                // because the rounding costs capture depth: the result seeds
+                // the decade walk that builds the whole list, and rounding
+                // down at second granularity would drop a DSLogic's top entry
+                // outright (1.678 s -> 1 s at 10 MHz on 16 channels). Below a
+                // second the loss is a fraction of a percent.
+                if (_device_agent->is_hardware_e8())
+                {
+                    double unit = SR_MS(1);
+                    while (unit > 1 && duration < unit)
+                        unit /= 1000;
+
+                    // Never round above hw_duration: anything longer would be
+                    // labelled RLE below and exceed the buffer.
+                    double rounded = round(duration / unit) * unit;
+                    if (rounded > hw_duration)
+                        rounded = floor(duration / unit) * unit;
+                    if (rounded > 0)
+                        duration = rounded;
+                }
+            }
 
             assert(duration > 0);
             bool not_last = true;
