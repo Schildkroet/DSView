@@ -32,7 +32,7 @@ set(DS_DESCRIPTION "A GUI for instruments of DreamSourceLab")
 
 set(DS_VERSION_MAJOR 1)
 set(DS_VERSION_MINOR 5)
-set(DS_VERSION_MICRO 0)
+set(DS_VERSION_MICRO 1)
 set(DS_VERSION_STRING  ${DS_VERSION_MAJOR}.${DS_VERSION_MINOR}.${DS_VERSION_MICRO})
 
 configure_file (
@@ -642,8 +642,9 @@ include_directories(
 set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-add_compile_options(-O3)
+set(CMAKE_CXX_FLAGS_RELEASE "-O2")
+set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG")
+add_compile_options(-O2)
 
 #===============================================================================
 #= Linker Configuration
@@ -790,5 +791,7 @@ if(ENABLE_TESTS)
     enable_testing()
     add_test(test ${CMAKE_CURRENT_BINARY_DIR}/DSView/test/DSView-test)
 endif(ENABLE_TESTS)
+
+
 
 
