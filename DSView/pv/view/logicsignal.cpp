@@ -215,6 +215,20 @@ void LogicSignal::paint_mid_align(QPainter &p, int left, int right, QColor fore,
     QColor lineColour = _colour.isValid() ? _colour : (defaultColour.isValid() ? defaultColour : fore);
     p.setPen(QPen(lineColour, AppConfig::Instance().appOptions.logicSignalLineWidth));
     p.drawLines(wave_lines.data(), wave_lines.size());
+
+    // Zoomed in far enough that samples are clearly apart: mark each one,
+    // so the actual sample points are visible along the waveform.
+    if (1.0 / samples_per_pixel >= SampleDotMinSpacing) {
+        const double dot = std::max(4.0, AppConfig::Instance().appOptions.logicSignalLineWidth + SampleDotGrow);
+        p.setPen(Qt::NoPen);
+        p.setBrush(lineColour);
+        for (uint64_t i = start_index; i <= end_index; i++) {
+            const double sx = i / samples_per_pixel - offset;
+            const double sy = _data->get_sample(i, _probe->index) ? high_offset : low_offset;
+            p.drawEllipse(QPointF(sx, sy), dot / 2, dot / 2);
+        }
+        p.setBrush(Qt::NoBrush);
+    }
 }
 
 void LogicSignal::paint_caps(QPainter &p, QLineF *const lines,
