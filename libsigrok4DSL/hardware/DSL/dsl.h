@@ -339,7 +339,16 @@ static const uint64_t vdivs_dso_e8[] = {
     0,
 };
 
+/*
+ * DSO_E8-1 DSO mode. 4 MHz and up is MCO1 clocking the ADC directly; below that
+ * the firmware keeps the ADC at 4 MHz and averages down (2, 4, 8, 20, 40:1).
+ * MUST match DSL_SAMPLE_RATES in the firmware's DSL_Cfg.h.
+ */
 static const uint64_t samplerates_dso_e8[] = {
+    SR_KHZ(100),
+    SR_KHZ(200),
+    SR_KHZ(500),
+    SR_MHZ(1),
     SR_MHZ(2),
     SR_MHZ(4),
     SR_MHZ(8),
@@ -357,6 +366,10 @@ static const uint64_t samplerates_dso_e8[] = {
  * mode. MUST match DSL_LOGIC_SAMPLE_RATES in the firmware's DSL_Cfg.h.
  */
 static const uint64_t samplerates_logic_e8[] = {
+    SR_KHZ(100),   /* below 2 MHz the firmware keeps every Nth sample of 2 MHz */
+    SR_KHZ(200),
+    SR_KHZ(500),
+    SR_MHZ(1),
     SR_MHZ(2),
     SR_MHZ(4),
     SR_MHZ(8),

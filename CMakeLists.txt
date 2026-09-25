@@ -780,6 +780,17 @@ set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA
     "${CMAKE_CURRENT_SOURCE_DIR}/DSView/packaging/debian/postrm"
 )
 
+# Qt loads its platform plugins (libqxcb.so, libqwayland-*.so) via dlopen, so
+# shlibdeps can't see them. On Ubuntu 22.04 / Debian 12 they live in the
+# separate qt6-qpa-plugins package, which libqt6gui6 doesn't pull in - without
+# it the app aborts with "no Qt platform plugin could be initialized". Newer
+# releases ship them inside libqt6gui6t64 itself, hence the alternative.
+# CPack appends the shlibdeps-discovered dependencies to this list.
+if(Qt6Core_FOUND)
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "qt6-qpa-plugins | libqt6gui6t64")
+    set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "qt6-wayland")
+endif()
+
 include(CPack)
 
 #===============================================================================
@@ -791,6 +802,8 @@ if(ENABLE_TESTS)
     enable_testing()
     add_test(test ${CMAKE_CURRENT_BINARY_DIR}/DSView/test/DSView-test)
 endif(ENABLE_TESTS)
+
+
 
 
 
