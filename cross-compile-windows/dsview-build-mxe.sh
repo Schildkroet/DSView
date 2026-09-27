@@ -58,7 +58,7 @@
 #   in this directory.
 
 # Deployment:
-# DSView.exe resides in ../build.dir after a successful build.
+# DSView.exe resides in ./bin (next to this script) after a successful build.
 # To deploy DSView, the following files need to be in the same directory as DSView.exe:
 # * all contents of python-setup/python-dist/
 # * the following directories from the git repository's DSView directory:
@@ -227,7 +227,7 @@ ${MXE_HOME}/usr/bin/${MXE_TARGET}-pkg-config python3 || die "Error: pkg-config c
 ${MXE_HOME}/usr/bin/${MXE_TARGET}-cmake .. # -DCMAKE_PREFIX_PATH="${MXE_HOME}/usr/${MXE_TARGET}/qt6"
 ${MXE_HOME}/usr/bin/${MXE_TARGET}-cmake --build . -j${CORE_COUNT} || die "Error building DSView!"
 
-echo "Build complete. The DSView executable can be found in ../build.dir/."
+echo "Build complete. The DSView executable can be found in ./bin/."
 echo
 
 cat > build-env.sh << EOF

@@ -21,6 +21,17 @@
 
 cmake_minimum_required(VERSION 3.10)
 
+# Keep the source tree clean: all generated files (moc_*, qrc_*, config.h,
+# Makefiles, the executable) belong in a separate build directory.
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
+    message(FATAL_ERROR
+        "In-source builds are not allowed. Build in ./build instead:\n"
+        "  cmake -S . -B build -DCMAKE_BUILD_TYPE=Release\n"
+        "  cmake --build build\n"
+        "(or just run `make`). CMake has already created CMakeCache.txt and "
+        "CMakeFiles/ here - delete them: rm -rf CMakeCache.txt CMakeFiles")
+endif()
+
 project(DSView)
 
 #===============================================================================
@@ -687,8 +698,11 @@ if(ENABLE_COTIRE)
     cotire(${PROJECT_NAME})
 endif()
 
-message(STATUS "Output dir: ${CMAKE_CURRENT_SOURCE_DIR}/build.dir")
-set(EXECUTABLE_OUTPUT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/build.dir")
+# Not the build dir root itself: <build>/DSView/ is already a directory
+# holding generated files (config.h, moc_*, qrc_*).
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+message(STATUS "Output dir: ${CMAKE_BINARY_DIR}/bin")
 
 #===============================================================================
 #= Installation
