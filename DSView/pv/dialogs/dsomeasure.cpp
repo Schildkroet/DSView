@@ -27,7 +27,8 @@
 #include <QVariant>
 #include <QLabel>
 #include <QTabBar>
-#include <QBitmap>
+#include <QImage>
+#include <QPainter>
  
 #include "../dsvdef.h"
 
@@ -99,11 +100,7 @@ void DsoMeasure::add_measure(QWidget *widget, const view::DsoSignal *dsoSig)
         XToolButton *button = new XToolButton(this);
         button->setProperty("id", QVariant(i));
         button->setIconSize(QSize(48, 48));
-        QPixmap msPix(get_ms_icon(i));
-        QBitmap msMask = msPix.createMaskFromColor(QColor("black"), Qt::MaskOutColor);
-        msPix.fill(psig->get_colour());
-        msPix.setMask(msMask);
-        button->setIcon(QIcon(msPix));
+        button->setIcon(QIcon(get_ms_pixmap(i, psig->get_colour())));
         layout->addWidget(button,
                           ((i-1)/Column)*IconSizeForText, (i-1)%Column,
                           IconSizeForText-1, 1,
@@ -137,6 +134,33 @@ QString DsoMeasure::get_ms_icon(int ms_type)
                                                         "mAmplitude.png", "mHigh.png", "mLow.png", "mRms.png", "mMean.png",
                                                         "mVpp.png", "mMax.png", "mMin.png", "mPover.png", "mNover.png"};
     return ":/icons/"+icon_name[ms_type];
+}
+
+QPixmap DsoMeasure::get_ms_pixmap(int ms_type, const QColor &colour, int size, qreal dpr)
+{
+    // Loaded via QPixmap so repeated repaints hit QPixmapCache.
+    QImage img = QPixmap(get_ms_icon(ms_type)).toImage();
+    if (img.isNull())
+        return QPixmap();
+
+    img = img.convertToFormat(QImage::Format_ARGB32_Premultiplied);
+    if (size > 0) {
+        const int px = qRound(size * dpr);
+        img = img.scaled(px, px, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    }
+    else {
+        dpr = 1.0;
+    }
+
+    // Recolour the glyph while keeping its alpha, so smoothed edges survive.
+    QPainter p(&img);
+    p.setCompositionMode(QPainter::CompositionMode_SourceIn);
+    p.fillRect(img.rect(), colour);
+    p.end();
+
+    QPixmap pix = QPixmap::fromImage(img);
+    pix.setDevicePixelRatio(dpr);
+    return pix;
 }
 
 QString DsoMeasure::get_ms_text(int ms_type)

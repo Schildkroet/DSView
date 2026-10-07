@@ -42,6 +42,7 @@
 #include "../appcontrol.h"
 #include "../sigsession.h"
 #include "../ui/dscombobox.h"
+#include "../ui/xspinbox.h"
 #include "../log.h"
 
 namespace pv
@@ -180,7 +181,7 @@ bool ApplicationParamDlg::ShowDlg(QWidget *parent)
     QCheckBox *ck_decoderDynamicFontWidth = new QCheckBox();
     ck_decoderDynamicFontWidth->setChecked(fontWidthEnabled);
 
-    QDoubleSpinBox *spinBox_lineWidth = new QDoubleSpinBox();
+    QDoubleSpinBox *spinBox_lineWidth = new XDoubleSpinBox();
     spinBox_lineWidth->setDecimals(1);
     spinBox_lineWidth->setSingleStep(0.5);
     spinBox_lineWidth->setMinimum(1.0);
@@ -217,13 +218,13 @@ bool ApplicationParamDlg::ShowDlg(QWidget *parent)
     slider_maxFontWidth->setTickPosition(QSlider::TicksBelow);
     slider_maxFontWidth->setFixedWidth(250);
     slider_maxFontWidth->setEnabled(fontWidthEnabled);
-    QSpinBox *spinBox_minFontWidth = new QSpinBox();
+    QSpinBox *spinBox_minFontWidth = new XSpinBox();
     spinBox_minFontWidth->setMinimum(DecoderFontStretchMinimum);
     spinBox_minFontWidth->setMaximum(DecoderFontStretchMaximum);
     spinBox_minFontWidth->setValue(app.appOptions.minDecoderFontWidthPercent);
     spinBox_minFontWidth->setSuffix("%");
     spinBox_minFontWidth->setEnabled(fontWidthEnabled);
-    QSpinBox *spinBox_maxFontWidth = new QSpinBox();
+    QSpinBox *spinBox_maxFontWidth = new XSpinBox();
     spinBox_maxFontWidth->setMinimum(DecoderFontStretchMinimum);
     spinBox_maxFontWidth->setMaximum(DecoderFontStretchMaximum);
     spinBox_maxFontWidth->setValue(app.appOptions.maxDecoderFontWidthPercent);

@@ -33,6 +33,7 @@
 #include "../data/mathstack.h"
 #include "../ui/langresource.h"
 #include "../ui/fn.h"
+#include "../ui/xspinbox.h"
 #include "../config/appconfig.h"
 
 using namespace boost;
@@ -82,7 +83,7 @@ MathOptions::MathOptions(SigSession *session, QWidget *parent) :
 
     // Moving-average window (samples) used by the low/high-pass filters.
     _filter_label = new QLabel(_math_group);
-    _filter_width = new QSpinBox(_math_group);
+    _filter_width = new XSpinBox(_math_group);
     _filter_width->setRange(1, 100000);
     _filter_width->setValue(10);
     type_layout->addWidget(_filter_label, rrow + 1, 0, 1, 2);

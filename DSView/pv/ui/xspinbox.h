@@ -25,24 +25,26 @@
 #include <QSpinBox>
 #include <QWidget>
 
+// Spin boxes that display and parse numbers the way the rest of DSView formats
+// them: ASCII digits and '.' as the decimal point independent of system locale.
 class XSpinBox : public QSpinBox
 {
 public:
-    XSpinBox(QWidget *parent);
+    XSpinBox(QWidget *parent = nullptr);
     ~XSpinBox();
 
 protected:
-    QString textFromValue(int val) const override;
+    QValidator::State validate(QString &text, int &pos) const override;
 };
 
 class XDoubleSpinBox : public QDoubleSpinBox
 {
 public:
-    XDoubleSpinBox(QWidget *parent);
+    XDoubleSpinBox(QWidget *parent = nullptr);
     ~XDoubleSpinBox();
 
 protected:
-    QString textFromValue(double val) const override;
+    QValidator::State validate(QString &text, int &pos) const override;
 };
 
 #endif

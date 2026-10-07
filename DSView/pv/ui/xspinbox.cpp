@@ -21,10 +21,33 @@
 
 #include "xspinbox.h"
 
+// A spin box uses its locale both to display and to parse the value, so both
+// have to come from the same locale:
+// - Some Windows locales make Qt draw digits as unrelated characters, e.g.
+//   "Chinese (Simplified, Hong Kong SAR)" (upstream DSView issue #913).
+// - Displaying "1.50" but parsing with a decimal-comma locale reads it as 150.
+static QLocale number_locale()
+{
+    QLocale locale = QLocale::c();
+    locale.setNumberOptions(QLocale::OmitGroupSeparator | QLocale::RejectGroupSeparator);
+    return locale;
+}
+
+// Qt's spin box validator accepts group separators even with
+// RejectGroupSeparator set, which would read a typed "2,25" as 225.
+static bool has_group_separator(QString text, const QString &prefix, const QString &suffix)
+{
+    if (text.startsWith(prefix))
+        text.remove(0, prefix.size());
+    if (text.endsWith(suffix))
+        text.chop(suffix.size());
+    return text.contains(number_locale().groupSeparator());
+}
+
 XSpinBox::XSpinBox(QWidget *parent)
     : QSpinBox(parent)
 {
-
+    setLocale(number_locale());
 }
 
 XSpinBox::~XSpinBox()
@@ -32,16 +55,18 @@ XSpinBox::~XSpinBox()
 
 }
 
-QString XSpinBox::textFromValue(int val) const
+QValidator::State XSpinBox::validate(QString &text, int &pos) const
 {
-    return QString::number(val);
+    if (has_group_separator(text, prefix(), suffix()))
+        return QValidator::Invalid;
+    return QSpinBox::validate(text, pos);
 }
 
 //-------------------XDoubleSpinBox
 XDoubleSpinBox::XDoubleSpinBox(QWidget *parent)
     : QDoubleSpinBox(parent)
 {
-
+    setLocale(number_locale());
 }
 
 XDoubleSpinBox::~XDoubleSpinBox()
@@ -49,8 +74,9 @@ XDoubleSpinBox::~XDoubleSpinBox()
 
 }
 
-QString XDoubleSpinBox::textFromValue(double val) const
+QValidator::State XDoubleSpinBox::validate(QString &text, int &pos) const
 {
-    int digit = decimals();
-    return QString::number(val, 'f', digit);
+    if (has_group_separator(text, prefix(), suffix()))
+        return QValidator::Invalid;
+    return QDoubleSpinBox::validate(text, pos);
 }

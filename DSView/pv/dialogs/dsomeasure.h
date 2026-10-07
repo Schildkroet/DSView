@@ -26,6 +26,8 @@
 #include <QVBoxLayout>
 #include <QDialogButtonBox>
 #include <QTabWidget>
+#include <QPixmap>
+#include <QColor>
  
 
 #include "../view/dsosignal.h"
@@ -52,6 +54,10 @@ public:
     ~DsoMeasure();
 
     static QString get_ms_icon(int ms_type);
+    // Icon tinted with colour; size > 0 scales it to size x size logical
+    // pixels at the given device pixel ratio.
+    static QPixmap get_ms_pixmap(int ms_type, const QColor &colour,
+                                 int size = 0, qreal dpr = 1.0);
     static QString get_ms_text(int ms_type);
 
 private:

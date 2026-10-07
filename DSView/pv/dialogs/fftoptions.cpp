@@ -39,6 +39,21 @@ using namespace std;
 namespace pv {
 namespace dialogs {
 
+namespace {
+// Item data is the window index (order of SpectrumTrace's windows_support);
+// the item text is translated, so it can't be used as the file name.
+QPixmap window_hint_pixmap(const QVariant &window_index)
+{
+    static const char *const names[] = {
+        "Rectangle", "Hann", "Hamming", "Blackman", "Flat_top"
+    };
+    const int i = window_index.toInt();
+    if (i < 0 || i >= (int)(sizeof(names) / sizeof(names[0])))
+        return QPixmap();
+    return QPixmap(QString(":/icons/") + names[i] + ".png");
+}
+}
+
 FftOptions::FftOptions(QWidget *parent, SigSession *session) :
     DSDialog(parent),
     _session(session),
@@ -188,9 +203,7 @@ FftOptions::FftOptions(QWidget *parent, SigSession *session) :
     }
 
     _hint_label = new QLabel(this);
-    QString hint_pic= ":/icons/" + _window_combobox->currentText()+".png";
-    QPixmap pixmap(hint_pic);
-    _hint_label->setPixmap(pixmap);
+    _hint_label->setPixmap(window_hint_pixmap(_window_combobox->currentData()));
 
     //*
     _glayout = new QGridLayout();  //QGridLayout
@@ -270,10 +283,7 @@ void FftOptions::reject()
 
 void FftOptions::window_changed(int index)
 {
-    QString str = _window_combobox->itemText(index);
-    QString hint_pic= ":/icons/" + str +".png";
-    QPixmap pixmap(hint_pic);
-    _hint_label->setPixmap(pixmap);
+    _hint_label->setPixmap(window_hint_pixmap(_window_combobox->itemData(index)));
 }
 
 void FftOptions::len_changed(int index)

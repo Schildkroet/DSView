@@ -25,7 +25,6 @@
 #include <QPainter>
 #include <QStyleOption>
 #include <QMouseEvent>
-#include <QBitmap>
 #include <QJsonObject>
 #include <QJsonArray>
 
@@ -119,12 +118,10 @@ void ViewStatus::paintEvent(QPaintEvent *)
             p.setBrush(active ? dsoSig->get_colour() : fore);
             p.drawRect(QRect(rect.topLeft(), QSize(10, rect.height())));
 
-            QPixmap msPix(pv::dialogs::DsoMeasure::get_ms_icon(std::get<2>(_mrects[i])));
-            QBitmap msMask = msPix.createMaskFromColor(QColor("black"), Qt::MaskOutColor);
-            msPix.fill(active ? dsoSig->get_colour() : fore);
-            msPix.setMask(msMask);
-            p.drawPixmap(QRect(rect.left()+10, rect.top(), rect.height(), rect.height()),
-                         msPix);
+            p.drawPixmap(rect.left()+10, rect.top(),
+                         pv::dialogs::DsoMeasure::get_ms_pixmap(std::get<2>(_mrects[i]),
+                                                                active ? dsoSig->get_colour() : fore,
+                                                                rect.height(), devicePixelRatioF()));
 
             p.setPen(((int)i == _hit_rect) ? View::Blue :
                      active ? dsoSig->get_colour() : fore);
