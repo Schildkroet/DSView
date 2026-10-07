@@ -136,6 +136,7 @@ static void _loadApp(AppOptions &o, QSettings &st)
     getFiled("logicChannelDivider", st, o.logicChannelDivider, true);
     getFiled("dsoSplitChannels", st, o.dsoSplitChannels, false);
     getFiled("dsoSignalLineWidth", st, o.dsoSignalLineWidth, 1.0f);
+    getFiled("dsoPersistenceMs", st, o.dsoPersistenceMs, 0);
 
     o.warnofMultiTrig = true;
 
@@ -169,6 +170,11 @@ static void _loadApp(AppOptions &o, QSettings &st)
         o.dsoSignalLineWidth = 1.0f;
     }
 
+    if (o.dsoPersistenceMs < 0 || o.dsoPersistenceMs > 10000)
+    {
+        o.dsoPersistenceMs = 0;
+    }
+
     st.endGroup();
 }
 
@@ -200,6 +206,7 @@ static void _saveApp(AppOptions &o, QSettings &st)
     setFiled("logicChannelDivider", st, o.logicChannelDivider);
     setFiled("dsoSplitChannels", st, o.dsoSplitChannels);
     setFiled("dsoSignalLineWidth", st, o.dsoSignalLineWidth);
+    setFiled("dsoPersistenceMs", st, o.dsoPersistenceMs);
 
     QString fmt =  FormatArrayToString(o.m_protocolFormats);
     setFiled("protocalFormats", st, fmt);
