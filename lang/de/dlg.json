@@ -838,5 +838,13 @@
     {
         "id": "IDS_DLG_VERTICAL_SCROLL_ACTION_VERTICAL_SCROLL",
         "text": "Scrollen"
+    },
+    {
+        "id": "IDS_DLG_DSO_PERSISTENCE",
+        "text": "Nachleuchten (Ausblendzeit)"
+    },
+    {
+        "id": "IDS_DLG_OFF",
+        "text": "Aus"
     }
 ]
