@@ -16,6 +16,7 @@ This fork tracks upstream DSView and adds the following.
 - **Channel-to-channel measurement** — phase, delay and skew between two DSO channels.
 - **Reference waveforms** — freeze a channel's waveform and overlay it on the live view for comparison.
 - **More math operations** — alongside add/subtract/multiply/divide: running integral, derivative, absolute value, square, signed square root, and moving-average low-pass and high-pass with a configurable window.
+- **Persistence** — DPO-style display where earlier frames fade out over a configurable time, making jitter and rare glitches visible.
 - **Split channels** — give each DSO channel its own row instead of sharing one grid.
 - **Y-scale reset**, and a wider calibration range.
 - A **demo oscilloscope device**, so the DSO interface can be used without hardware.
@@ -26,6 +27,7 @@ This fork tracks upstream DSView and adds the following.
 - **Logic trace appearance** — adjustable signal line width and optional per-channel divider lines.
 - **Catppuccin Latte and Frappé themes**, in addition to the existing light and dark ones.
 - **German translation.**
+- **Sample points** drawn on logic and oscilloscope traces when zoomed in far enough, and faster oscilloscope drawing at long time/div.
 - Smooth scrolling on high-resolution mice and touchpads.
 - Tabbed right-hand docks, reworked titlebar, clearer protocol-decoder colours, and an option to skip the save prompt on exit.
 
@@ -39,6 +41,10 @@ This fork tracks upstream DSView and adds the following.
 
 - **MCP230XX** — Microchip 8/16-bit I²C I/O expanders.
 - **TMP112** — Texas Instruments I²C temperature sensor.
+- **I3C** (SDR mode), **SMBus/PMBus**, **SENT (SAE J2716)**, **DShot** and **HDQ**.
+- **MAX7219** daisy-chain support, an optional **I²C glitch filter**, and a much faster **JTAG** decoder.
+
+See [RELEASE_NOTES.md](RELEASE_NOTES.md) for the full per-version change list.
 
 # Status
 
