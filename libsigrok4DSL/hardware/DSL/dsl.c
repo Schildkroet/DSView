@@ -286,28 +286,45 @@ SR_PRIV int dsl_en_ch_num(const struct sr_dev_inst *sdi)
     return channel_en_cnt;
 }
 
+/* Whether a failed request means that the device does not answer (yet). */
+static gboolean dsl_no_answer(int ret)
+{
+    return ret == LIBUSB_ERROR_TIMEOUT || ret == LIBUSB_ERROR_IO
+        || ret == LIBUSB_ERROR_NO_DEVICE || ret == LIBUSB_ERROR_BUSY;
+}
+
 /**
  * Check the USB configuration to determine if this is an dsl device.
  *
- * @return TRUE if the device's configuration profile match dsl hardware
- *         configuration, FALSE otherwise.
+ * Right after it is plugged, a device may not answer yet: that is not the
+ * same as missing firmware, and uploading firmware to a device that boots it
+ * from flash can hang it.
+ *
+ * @return DSL_PROFILE_FIRMWARE if the device runs the dsl firmware,
+ *         DSL_PROFILE_NO_FIRMWARE if it answers without the dsl strings,
+ *         DSL_PROFILE_NOT_READY if it does not answer.
  */
-SR_PRIV gboolean dsl_check_conf_profile(libusb_device *dev)
+SR_PRIV int dsl_check_conf_profile(libusb_device *dev)
 {
     struct libusb_device_descriptor des;
     struct libusb_device_handle *hdl;
     int ret;
-    gboolean bSucess;
+    int status;
+    int tries;
     unsigned char strdesc[64];
     const char *manufacturer;
     const char *product;
 
-    hdl = NULL;
-    bSucess = FALSE;
-    ret = 0;
+    status = DSL_PROFILE_NOT_READY;
 
-    while (!bSucess) {
+    for (tries = 0; tries < 3 && status == DSL_PROFILE_NOT_READY; tries++) {
+        if (tries > 0)
+            g_usleep(300 * 1000);
+
+        hdl = NULL;
         /* Assume the FW has not been loaded, unless proven wrong. */
+        status = DSL_PROFILE_NO_FIRMWARE;
+
         if ((ret = libusb_get_device_descriptor(dev, &des)) < 0){
             sr_err("%s:%d, Failed to get device descriptor: %s", 
 			    __func__, __LINE__, libusb_error_name(ret));
@@ -328,38 +345,35 @@ SR_PRIV gboolean dsl_check_conf_profile(libusb_device *dev)
             sr_err("%s:%d, Failed to open device: %s", 
 			    __func__, __LINE__, libusb_error_name(ret));
             // Mybe the device is busy, add it to list.
-            return TRUE;
+            return DSL_PROFILE_FIRMWARE;
         }
 
         if ((ret = libusb_get_string_descriptor_ascii(hdl,
                 des.iManufacturer, strdesc, sizeof(strdesc))) < 0){
             sr_err("%s:%d, Failed to get device descriptor ascii: %s", 
 			    __func__, __LINE__, libusb_error_name(ret));
-            break;
+            if (dsl_no_answer(ret))
+                status = DSL_PROFILE_NOT_READY;
+        }
+        else if (strncmp((const char *)strdesc, manufacturer, strlen(manufacturer)) == 0) {
+            if ((ret = libusb_get_string_descriptor_ascii(hdl,
+                    des.iProduct, strdesc, sizeof(strdesc))) < 0){
+                sr_err("%s:%d, Failed to get device descriptor ascii: %s", 
+                    __func__, __LINE__, libusb_error_name(ret));
+                if (dsl_no_answer(ret))
+                    status = DSL_PROFILE_NOT_READY;
+            }
+            else if (strncmp((const char *)strdesc, product, strlen(product)) == 0) {
+                /* If we made it here, it must be an dsl device. */
+                status = DSL_PROFILE_FIRMWARE;
+            }
         }
 
-        if (strncmp((const char *)strdesc, manufacturer, strlen(manufacturer)))
-            break;
-
-        if ((ret = libusb_get_string_descriptor_ascii(hdl,
-                des.iProduct, strdesc, sizeof(strdesc))) < 0){
-            sr_err("%s:%d, Failed to get device descriptor ascii: %s", 
-			    __func__, __LINE__, libusb_error_name(ret));
-            break;
-        }
-
-        if (strncmp((const char *)strdesc, product, strlen(product)))
-            break;
-
-        /* If we made it here, it must be an dsl device. */
-        bSucess = TRUE;
-    }
-
-    if (hdl){
         libusb_close(hdl);
+        hdl = NULL;
     }
 
-    return bSucess;
+    return status;
 }
 
 static int hw_dev_open(struct sr_dev_driver *di, struct sr_dev_inst *sdi)
@@ -2039,11 +2053,33 @@ SR_PRIV int dsl_dev_open(struct sr_dev_driver *di, struct sr_dev_inst *sdi, gboo
     return SR_OK;
 }
 
+/*
+ * Stop the USB event thread of a Windows acquisition, see usb_event_thread().
+ * A stopped capture leaves it running to reap the cancelled transfers, so it
+ * is also stopped before the next capture and when the device is closed.
+ */
+SR_PRIV void dsl_stop_usb_event_thread(const struct sr_dev_inst *sdi)
+{
+    struct DSL_context *devc = sdi->priv;
+    struct drv_context *drvc = sdi->driver->priv;
+
+    if (devc == NULL || devc->usb_thread == NULL)
+        return;
+
+    devc->usb_thread_quit = TRUE;
+    /* Return from libusb_handle_events_timeout_completed() now. */
+    libusb_interrupt_event_handler(drvc->sr_ctx->libusb_ctx);
+    g_thread_join(devc->usb_thread);
+    devc->usb_thread = NULL;
+}
+
 SR_PRIV int dsl_dev_close(struct sr_dev_inst *sdi)
 {
     struct sr_usb_dev_inst *usb;
 
     assert(sdi);
+
+    dsl_stop_usb_event_thread(sdi);
 
     usb = sdi->conn;
 

@@ -1639,7 +1639,13 @@ SR_PRIV const uint64_t *dsl_samplerates(const struct DSL_context *devc);
 SR_PRIV void dsl_adjust_samplerate(struct DSL_context *devc);
 
 SR_PRIV int dsl_en_ch_num(const struct sr_dev_inst *sdi);
-SR_PRIV gboolean dsl_check_conf_profile(libusb_device *dev);
+/* dsl_check_conf_profile() results. */
+enum dsl_conf_profile {
+    DSL_PROFILE_NOT_READY = -1, /* does not answer yet */
+    DSL_PROFILE_NO_FIRMWARE = 0,
+    DSL_PROFILE_FIRMWARE = 1,
+};
+SR_PRIV int dsl_check_conf_profile(libusb_device *dev);
 SR_PRIV int dsl_configure_probes(const struct sr_dev_inst *sdi);
 SR_PRIV uint64_t dsl_channel_depth(const struct sr_dev_inst *sdi);
 
@@ -1680,6 +1686,7 @@ SR_PRIV int dsl_dev_acquisition_stop(const struct sr_dev_inst *sdi, void *cb_dat
 SR_PRIV int dsl_dev_status_get(const struct sr_dev_inst *sdi, struct sr_status *status, gboolean prg);
 
 SR_PRIV unsigned int dsl_get_timeout(const struct sr_dev_inst *sdi);
+SR_PRIV void dsl_stop_usb_event_thread(const struct sr_dev_inst *sdi);
 SR_PRIV int dsl_start_transfers(const struct sr_dev_inst *sdi);
 SR_PRIV int dsl_header_size(const struct DSL_context *devc);
 

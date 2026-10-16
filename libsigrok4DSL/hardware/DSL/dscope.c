@@ -333,7 +333,13 @@ static GSList *scan(GSList *options)
         address = libusb_get_device_address(device_handle);
         sr_info("Found a new device,handle:%p", device_handle);
 
-		if (dsl_check_conf_profile(device_handle)) {
+		ret = dsl_check_conf_profile(device_handle);
+		if (ret == DSL_PROFILE_NOT_READY) {
+		    sr_warn("The device does not answer, skip it, handle:%p", device_handle);
+		    continue;
+		}
+
+		if (ret == DSL_PROFILE_FIRMWARE) {
 			/* Already has the firmware, so fix the new address. */
             sr_info("Found a DSCope device,name:\"%s\",handle:%p", prof->model, device_handle);
 
@@ -2032,8 +2038,7 @@ static void remove_sources(struct DSL_context *devc)
     if(devc->usb_thread) {
         sr_info("%s: stop USB event thread", __func__);
         sr_source_remove(-1);
-        devc->usb_thread_quit = TRUE;
-        devc->usb_thread = NULL;
+        dsl_stop_usb_event_thread(devc->cb_data);
     }
 }
 
@@ -2302,6 +2307,7 @@ static int dev_acquisition_start(struct sr_dev_inst *sdi, void *cb_data)
        use a thread to call libusb_handle_events instead. */
     else {
         devc->usbfd = NULL;
+        dsl_stop_usb_event_thread(sdi);
         devc->usb_thread_quit = FALSE;
         devc->usb_thread = g_thread_new("dscope-usb-poll", usb_event_thread, sdi);
         if(!devc->usb_thread) {
