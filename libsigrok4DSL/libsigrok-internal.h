@@ -336,6 +336,9 @@ SR_PRIV uint16_t ds_trigger_get_edge1(uint16_t stage, uint16_t msc, uint16_t lsc
 SR_PRIV int ds_trigger_init(void);
 SR_PRIV int ds_trigger_destroy(void);
 
+/*--- output/output.c -------------------------------------------------------*/
+SR_PRIV GSList *sr_output_channels(const struct sr_output *o);
+
 /*--- hardware/common/serial.c ----------------------------------------------*/
 
 enum {
