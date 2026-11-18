@@ -72,7 +72,7 @@ struct FormInitInfo
 {
     FormRegion r;
     bool isMaxSize;
-    int k;
+    qreal k;
 };
 
 class MainFrame : 
