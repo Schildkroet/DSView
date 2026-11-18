@@ -309,6 +309,7 @@ namespace pv
         connect(_view, SIGNAL(cursor_moved()), _measure_widget, SLOT(reCalc()));
         connect(_view, SIGNAL(prgRate(int)), this, SIGNAL(prgRate(int)));
         connect(_view, SIGNAL(auto_trig(int)), _dso_trigger_widget, SLOT(auto_trig(int)));
+        connect(_trigger_widget, SIGNAL(trigger_changed()), _view, SLOT(header_updated()));
 
         // trig_bar
         connect(_trig_bar, SIGNAL(sig_protocol(bool)), this, SLOT(on_protocol(bool)));

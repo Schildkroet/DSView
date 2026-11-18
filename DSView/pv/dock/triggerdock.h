@@ -75,6 +75,7 @@ private:
 
     void setup_adv_tab();
     void lineEdit_highlight(PopupLineEdit *dst);
+    void update_trigger_mode();
 
       /*
      * commit trigger setting
@@ -87,6 +88,10 @@ private:
     void UpdateLanguage() override;
     void UpdateTheme() override;
     void UpdateFont() override;
+
+signals:
+    // The per-channel trigger buttons changed between in effect and not.
+    void trigger_changed();
 
 private slots:
     void simple_trigger();

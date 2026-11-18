@@ -256,6 +256,9 @@ void LogicSignal::paint_caps(QPainter &p, QLineF *const lines,
 
 void LogicSignal::paint_type_options(QPainter &p, int right, const QPoint pt, QColor fore)
 {
+    // With the advanced trigger selected the buttons are greyed out, but keep their selection.
+    const bool trigger_active = !session->is_adv_trigger();
+
     int y = get_y();
     const QRectF posTrig_rect  = get_rect(POSTRIG,  y, right);
     const QRectF higTrig_rect  = get_rect(HIGTRIG,  y, right);
@@ -269,28 +272,34 @@ void LogicSignal::paint_type_options(QPainter &p, int right, const QPoint pt, QC
     {
         QColor color = View::Blue;
 
-        if (session->is_loop_mode()){
+        if (!trigger_active){
+            // Translucent, so the grey glyph stays readable on a kept selection.
+            color = QColor(0x70, 0x70, 0x70, 0x60);
+        }
+        else if (session->is_loop_mode()){
             color = QColor(0x70, 0x70, 0x70,  255);
         }
 
-        p.setBrush(posTrig_rect.contains(pt) ? color.lighter() :
+        p.setBrush((trigger_active && posTrig_rect.contains(pt)) ? color.lighter() :
                 (_trig == POSTRIG) ? color : Qt::transparent);
         p.drawRect(posTrig_rect);
-        p.setBrush(higTrig_rect.contains(pt) ? color.lighter() :
+        p.setBrush((trigger_active && higTrig_rect.contains(pt)) ? color.lighter() :
                 (_trig == HIGTRIG) ? color : Qt::transparent);
         p.drawRect(higTrig_rect);
-        p.setBrush(negTrig_rect.contains(pt) ? color.lighter() :
+        p.setBrush((trigger_active && negTrig_rect.contains(pt)) ? color.lighter() :
                 (_trig == NEGTRIG) ? color : Qt::transparent);
         p.drawRect(negTrig_rect);
-        p.setBrush(lowTrig_rect.contains(pt) ? color.lighter() :
+        p.setBrush((trigger_active && lowTrig_rect.contains(pt)) ? color.lighter() :
                 (_trig == LOWTRIG) ? color : Qt::transparent);
         p.drawRect(lowTrig_rect);
-        p.setBrush(edgeTrig_rect.contains(pt) ? color.lighter() :
+        p.setBrush((trigger_active && edgeTrig_rect.contains(pt)) ? color.lighter() :
                 (_trig == EDGTRIG) ? color : Qt::transparent);
         p.drawRect(edgeTrig_rect);
     }
 
-    p.setPen(QPen(fore, 1, Qt::DashLine));
+    const QColor option_fore = trigger_active ? fore : QColor(0x70, 0x70, 0x70, 255);
+
+    p.setPen(QPen(option_fore, 1, Qt::DashLine));
     p.setBrush(Qt::transparent);
     p.drawLine(posTrig_rect.left(), posTrig_rect.bottom(),
                edgeTrig_rect.right(), edgeTrig_rect.bottom());
@@ -301,7 +310,7 @@ void LogicSignal::paint_type_options(QPainter &p, int right, const QPoint pt, QC
     const double i7 = 7 * sc;
     const double i2 = 2 * sc;
 
-    p.setPen(QPen(fore, max(2.0, 2 * sc), Qt::SolidLine));
+    p.setPen(QPen(option_fore, max(2.0, 2 * sc), Qt::SolidLine));
     p.setBrush(Qt::transparent);
     p.drawLine(QPointF(posTrig_rect.left() + i5, posTrig_rect.bottom() - i5),
                QPointF(posTrig_rect.center().x(), posTrig_rect.bottom() - i5));
@@ -539,6 +548,9 @@ bool LogicSignal::edges(uint64_t end, uint64_t start, uint64_t &rising, uint64_t
 
 bool LogicSignal::mouse_press(int right, const QPoint pt)
 {
+    if (session->is_adv_trigger())
+        return false;
+
     int y = get_y();
     const QRectF posTrig = get_rect(POSTRIG, y, right);
     const QRectF higTrig = get_rect(HIGTRIG, y, right);

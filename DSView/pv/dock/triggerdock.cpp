@@ -189,6 +189,7 @@ void TriggerDock::simple_trigger()
     _stages_label->setDisabled(true);
     stages_comboBox->setDisabled(true);
     _adv_tabWidget->setDisabled(true);
+    update_trigger_mode();
 }
 
 void TriggerDock::adv_trigger()
@@ -213,6 +214,17 @@ void TriggerDock::adv_trigger()
         MsgBox::Show(strMsg);
         _simple_radioButton->setChecked(true);
     }
+    update_trigger_mode();
+}
+
+void TriggerDock::update_trigger_mode()
+{
+    // Taken from the radio state, as adv_trigger() may fall back to the simple trigger.
+    const bool adv = _adv_radioButton->isChecked();
+    if (adv == _session->is_adv_trigger())
+        return;
+    _session->set_adv_trigger(adv);
+    emit trigger_changed();
 }
 
 void TriggerDock::widget_enable(int index)
