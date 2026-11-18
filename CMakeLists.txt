@@ -725,9 +725,12 @@ else()
     install(FILES DSView/icons/logo.svg DESTINATION share/DSView RENAME logo.svg)
     install(FILES DSView/icons/logo.svg DESTINATION share/icons/hicolor/scalable/apps RENAME dsview.svg)
     install(FILES DSView/icons/logo.svg DESTINATION share/pixmaps RENAME dsview.svg)
+    # PNG for the AppImage's .DirIcon, which appimagetool can't make from SVG.
+    install(FILES DSView/icons/dsview-256.png DESTINATION share/icons/hicolor/256x256/apps RENAME dsview.png)
 
     if(CMAKE_SYSTEM_NAME MATCHES "Linux")
-        install(FILES DSView/DSView.desktop DESTINATION /usr/share/applications RENAME dsview.desktop)
+        install(FILES DSView/DSView.desktop DESTINATION /usr/share/applications RENAME io.github.schildkroet.dsview.desktop)
+        install(FILES DSView/io.github.schildkroet.dsview.appdata.xml DESTINATION /usr/share/metainfo)
 
         add_compile_definitions(_DEFAULT_SOURCE)
 

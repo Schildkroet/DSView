@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.schildkroet.dsview</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+
+  <name>DSView</name>
+  <summary>Logic analyzer and oscilloscope software for DreamSourceLab instruments</summary>
+
+  <description>
+    <p>
+      DSView is the capture and analysis software for DreamSourceLab USB logic
+      analyzers (DSLogic) and oscilloscopes (DSCope). This is a fork of
+      DreamSourceLab's DSView with extra oscilloscope tools, display options and
+      protocol decoders.
+    </p>
+    <ul>
+      <li>Logic analyzer captures with simple and advanced triggers</li>
+      <li>More than 100 protocol decoders, including I2C, SPI, UART, CAN, USB and I3C</li>
+      <li>Oscilloscope mode with FFT, math, histograms, reference waveforms and persistence</li>
+      <li>Export to CSV, VCD, gnuplot and sigrok session files</li>
+    </ul>
+  </description>
+
+  <launchable type="desktop-id">io.github.schildkroet.dsview.desktop</launchable>
+  <icon type="stock">dsview</icon>
+
+  <url type="homepage">https://github.com/Schildkroet/DSView</url>
+  <url type="bugtracker">https://github.com/Schildkroet/DSView/issues</url>
+
+  <categories>
+    <category>Development</category>
+    <category>Electronics</category>
+  </categories>
+
+  <provides>
+    <binary>DSView</binary>
+  </provides>
+
+  <content_rating type="oars-1.1" />
+</component>

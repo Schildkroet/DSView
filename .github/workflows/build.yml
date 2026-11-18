@@ -22,7 +22,7 @@ jobs:
             build-essential cmake git pkg-config \
             qt6-base-dev libqt6svg6-dev libgl1-mesa-dev libxkbcommon-dev libvulkan-dev \
             libglib2.0-dev zlib1g-dev libusb-1.0-0-dev libboost-dev libfftw3-dev \
-            python3-dev libudev-dev dpkg-dev rsync patchelf
+            python3-dev libudev-dev dpkg-dev rsync patchelf appstream
 
       - name: Configure
         run: |
@@ -176,6 +176,12 @@ jobs:
           exec "\$HERE/AppRun.qt" "\$@"
           EOF
           chmod +x "${GITHUB_WORKSPACE}/AppDir/AppRun"
+
+          # appimagetool makes .DirIcon from <Icon>.png at the AppDir root and
+          # can't use the SVG that linuxdeploy puts there.
+          rm -f "${GITHUB_WORKSPACE}/AppDir/dsview.png"
+          cp "${GITHUB_WORKSPACE}/AppDir/usr/share/icons/hicolor/256x256/apps/dsview.png" \
+            "${GITHUB_WORKSPACE}/AppDir/dsview.png"
 
           wget -q -O appimagetool \
             "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage"
