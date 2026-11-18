@@ -41,6 +41,11 @@
 #define RULER_UNIT_SAMPLES "Samples"
 #define RULER_UNIT_TIME    "Time"
 
+// Range of AppOptions::toolbarIconSize; 0 means the style's default.
+#define MinToolbarIconSize     16
+#define MaxToolbarIconSize     64
+#define DefaultToolbarIconSize 40
+
 //--------------------api---
 QString GetIconPath();
 QString GetAppDataDir();
@@ -90,6 +95,7 @@ struct AppOptions
     bool logicChannelDivider;
     bool dsoSplitChannels;
     float dsoSignalLineWidth;
+    int   toolbarIconSize; // in px, 0 = the style's default
     int dsoPersistenceMs; // 0 = off; fade-out time of previous scope frames
     std::vector<StringPair> m_protocolFormats;
 };

@@ -137,6 +137,7 @@ static void _loadApp(AppOptions &o, QSettings &st)
     getFiled("dsoSplitChannels", st, o.dsoSplitChannels, false);
     getFiled("dsoSignalLineWidth", st, o.dsoSignalLineWidth, 1.0f);
     getFiled("dsoPersistenceMs", st, o.dsoPersistenceMs, 0);
+    getFiled("toolbarIconSize", st, o.toolbarIconSize, DefaultToolbarIconSize);
 
     o.warnofMultiTrig = true;
 
@@ -158,6 +159,12 @@ static void _loadApp(AppOptions &o, QSettings &st)
     if (o.traceHeightFactor < 0.1 || o.traceHeightFactor > 20.0)
     {
         o.traceHeightFactor = 1.0;
+    }
+
+    if (o.toolbarIconSize != 0
+        && (o.toolbarIconSize < MinToolbarIconSize || o.toolbarIconSize > MaxToolbarIconSize))
+    {
+        o.toolbarIconSize = DefaultToolbarIconSize;
     }
 
     if (o.logicSignalLineWidth < 1.0f || o.logicSignalLineWidth > 4.0f)
@@ -207,6 +214,7 @@ static void _saveApp(AppOptions &o, QSettings &st)
     setFiled("dsoSplitChannels", st, o.dsoSplitChannels);
     setFiled("dsoSignalLineWidth", st, o.dsoSignalLineWidth);
     setFiled("dsoPersistenceMs", st, o.dsoPersistenceMs);
+    setFiled("toolbarIconSize", st, o.toolbarIconSize);
 
     QString fmt =  FormatArrayToString(o.m_protocolFormats);
     setFiled("protocalFormats", st, fmt);

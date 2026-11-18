@@ -38,6 +38,8 @@
 #include <QApplication>
 #include <QStandardPaths>
 #include <QScreen>
+#include <QStyle>
+#include <QToolButton>
 #include <QTimer>
 #include <libusb-1.0/libusb.h>
 #include <QGuiApplication>
@@ -219,18 +221,11 @@ namespace pv
         _vertical_layout->addWidget(_view);
 
 
-        setIconSize(QSize(40, 40));
         addToolBar(_sampling_bar);
         addToolBar(_trig_bar);
         addToolBar(_file_bar);
         addToolBar(_logo_bar);
-
-        // Set it on the bars too: with Qt 6, a style sheet change resets the
-        // icon size a bar inherited from the window to the style's default.
-        _sampling_bar->setIconSize(iconSize());
-        _trig_bar->setIconSize(iconSize());
-        _file_bar->setIconSize(iconSize());
-        _logo_bar->setIconSize(iconSize());
+        apply_toolbar_icon_size();
 
         // Setup the dockWidget
         _protocol_dock = new QDockWidget(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_PROTOCOL_DOCK_TITLE), "Decode Protocol"), this);
@@ -1507,6 +1502,8 @@ namespace pv
         qss.open(QFile::ReadOnly | QFile::Text);
         qApp->setStyleSheet(qss.readAll());
         qss.close();
+        // "Automatic" follows the style, which the style sheet may change.
+        apply_toolbar_icon_size();
 
         UiManager::Instance()->Update(UI_UPDATE_ACTION_THEME);
         UiManager::Instance()->Update(UI_UPDATE_ACTION_FONT);
@@ -2220,6 +2217,7 @@ namespace pv
             case DSV_MSG_APP_OPTIONS_CHANGED:
             {
                 update_title_bar_text();
+                apply_toolbar_icon_size();
                 // Recompute trace layout: the inter-channel spacing depends on
                 // the channel-divider option (see View::get_signal_margin()).
                 _view->signals_changed(NULL);
@@ -2276,6 +2274,36 @@ namespace pv
             MsgBox::Show("", _strMsg, this, &_msg);
             _msg = NULL;
         }            
+    }
+
+    void MainWindow::apply_toolbar_icon_size()
+    {
+        int size = AppConfig::Instance().appOptions.toolbarIconSize;
+
+        if (size <= 0){
+            size = _sampling_bar->style()->pixelMetric(QStyle::PM_ToolBarIconSize,
+                                                       nullptr, _sampling_bar);
+        }
+
+        // Set it on each bar, not only on the window: with Qt 6, a style sheet
+        // change resets the icon size a bar inherited from the window to the
+        // style's default.
+        const QSize iconSize(size, size);
+        setIconSize(iconSize);
+
+        QToolBar *bars[] = {_sampling_bar, _trig_bar, _file_bar, _logo_bar};
+        for (QToolBar *bar : bars){
+            bar->setIconSize(iconSize);
+
+            // The buttons are added to the bars as widgets, which Qt does not
+            // pass the bar's icon size on to. They would keep their old size
+            // and draw the new icon size only when next repainted (on hover).
+            for (QToolButton *bt : bar->findChildren<QToolButton*>(QString(), Qt::FindDirectChildrenOnly)){
+                if (bt->objectName() != "qt_toolbar_ext_button"){
+                    bt->setIconSize(iconSize);
+                }
+            }
+        }
     }
 
     void MainWindow::update_title_bar_text()

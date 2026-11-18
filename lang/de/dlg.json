@@ -704,6 +704,14 @@
         "text": "Nicht nach Speichern der aufgezeichneten Daten fragen"
     },
     {
+        "id": "IDS_DLG_TOOLBAR_ICON_SIZE",
+        "text": "Symbolgröße der Werkzeugleiste"
+    },
+    {
+        "id": "IDS_DLG_ICON_SIZE_AUTO",
+        "text": "Automatisch"
+    },
+    {
         "id": "IDS_DLG_SERIAL_HEX",
         "text": "Hex:"
     },
