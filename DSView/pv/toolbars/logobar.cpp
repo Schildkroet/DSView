@@ -221,7 +221,7 @@ void LogoBar::on_actionManual_triggered()
 
 void LogoBar::on_actionIssue_triggered()
 {
-    QDesktopServices::openUrl(QUrl(QLatin1String("https://github.com/DreamSourceLab/DSView/issues")));
+    QDesktopServices::openUrl(QUrl(QLatin1String("https://github.com/Schildkroet/DSView/issues")));
 }
 
  void LogoBar::on_action_update()
