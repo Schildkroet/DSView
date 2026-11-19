@@ -434,6 +434,7 @@ private:
     // step always reaches the next stop in its direction.
     int snap_v_offset(int value, int from = -1);
     bool v_snap_enabled();
+    void restore_v_scroll(int old_value, int old_content);
     void update_margins();
     // Re-reserves bottom/right space in _statusLayout for the real
     // scrollbars, using their current (not construction-time) geometry -
