@@ -134,6 +134,7 @@ static void _loadApp(AppOptions &o, QSettings &st)
     getFiled("dontAskSaveOnExit", st, o.dontAskSaveOnExit, false);
     getFiled("logicSignalLineWidth", st, o.logicSignalLineWidth, 1.0f);
     getFiled("logicChannelDivider", st, o.logicChannelDivider, true);
+    getFiled("logicSnapVScroll", st, o.logicSnapVScroll, true);
     getFiled("dsoSplitChannels", st, o.dsoSplitChannels, false);
     getFiled("dsoSignalLineWidth", st, o.dsoSignalLineWidth, 1.0f);
     getFiled("dsoPersistenceMs", st, o.dsoPersistenceMs, 0);
@@ -211,6 +212,7 @@ static void _saveApp(AppOptions &o, QSettings &st)
     setFiled("dontAskSaveOnExit", st, o.dontAskSaveOnExit);
     setFiled("logicSignalLineWidth", st, o.logicSignalLineWidth);
     setFiled("logicChannelDivider", st, o.logicChannelDivider);
+    setFiled("logicSnapVScroll", st, o.logicSnapVScroll);
     setFiled("dsoSplitChannels", st, o.dsoSplitChannels);
     setFiled("dsoSignalLineWidth", st, o.dsoSignalLineWidth);
     setFiled("dsoPersistenceMs", st, o.dsoPersistenceMs);

@@ -93,6 +93,7 @@ struct AppOptions
     bool dontAskSaveOnExit;
     float logicSignalLineWidth;
     bool logicChannelDivider;
+    bool logicSnapVScroll;  // snap to trace tops when the scroll bar is released
     bool dsoSplitChannels;
     float dsoSignalLineWidth;
     int   toolbarIconSize; // in px, 0 = the style's default
