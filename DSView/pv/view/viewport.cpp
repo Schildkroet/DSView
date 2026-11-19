@@ -1570,6 +1570,11 @@ void Viewport::mouseReleaseEvent(QMouseEvent *event)
         return;
     }
 
+    // A middle-button drag scrolls vertically (see mouseMoveEvent); land on
+    // a channel once it ends, as a scroll bar drag does.
+    if (event->button() == Qt::MiddleButton)
+        _view.snap_v_scroll();
+
     int mode = _view.session().get_device()->get_work_mode();
 
     if (mode == LOGIC){
@@ -1775,7 +1780,7 @@ void Viewport::wheelEvent(QWheelEvent *event)
             }
             // Vertical scrolling is interpreted as zooming in/out
             else if(doVScroll) {
-                _view.verticalScrollBar()->setValue(_view.verticalScrollBar()->value() - delta);
+                _view.scroll_v_by_wheel(delta);
             } else {
                 _view.zoom(zoom_scale, x);
             }

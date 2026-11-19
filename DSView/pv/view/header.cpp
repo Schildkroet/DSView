@@ -405,7 +405,7 @@ void Header::wheelEvent(QWheelEvent *event)
                     break;
             }
         }
-        _view.verticalScrollBar()->setValue(_view.verticalScrollBar()->value() - delta);
+        _view.scroll_v_by_wheel(delta);
         update();
     }
 }
