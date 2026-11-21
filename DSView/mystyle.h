@@ -23,11 +23,30 @@
 #define MYSTYLE_H
 
 #include <QProxyStyle>
+#include <QStyleFactory>
+#include <memory>
 
 class MyStyle : public QProxyStyle
 {
     Q_OBJECT
     public:
+    MyStyle() :
+        QProxyStyle(),
+        _fusion(QStyleFactory::create("Fusion"))
+    {}
+
+    // DSView's style sheets draw spin boxes themselves, but their size still
+    // comes from the base style. Desktop styles such as Breeze reserve room for
+    // their own larger frame and buttons, which made spin boxes much taller than
+    // the combo boxes next to them. Size them as Fusion does.
+    QSize sizeFromContents(ContentsType type, const QStyleOption *option,
+                           const QSize &size, const QWidget *widget) const override
+    {
+        if (type == CT_SpinBox && _fusion)
+            return _fusion->sizeFromContents(type, option, size, widget);
+        return QProxyStyle::sizeFromContents(type, option, size, widget);
+    }
+
     int pixelMetric(PixelMetric metric, const QStyleOption * option = 0, const QWidget * widget = 0 ) {
         int s = QProxyStyle::pixelMetric(metric, option, widget);
         if (metric == QStyle::PM_SmallIconSize) {
@@ -35,6 +54,9 @@ class MyStyle : public QProxyStyle
         }
         return s;
     }
+
+    private:
+    std::unique_ptr<QStyle> _fusion;
 };
 
 #endif // MYSTYLE_H
