@@ -954,9 +954,6 @@ void TriggerDock::lineEdit_highlight(PopupLineEdit *dst) {
 
 void TriggerDock::try_commit_trigger()
 {   
-    AppConfig &app = AppConfig::Instance(); 
-    int num = 0;
-
     int mode = _session->get_device()->get_work_mode();
     bool bInstant = _session->is_instant();
 
@@ -972,38 +969,7 @@ void TriggerDock::try_commit_trigger()
         for(auto s : _session->get_signals()){ 
             if (s->signal_type() == SR_CHANNEL_LOGIC) {
                 view::LogicSignal *logicSig = (view::LogicSignal*)s;
-                if (logicSig->commit_trig())
-                    num++;
-            }
-        }
-
-        if (app.appOptions.warnofMultiTrig && num > 1)
-        {
-            dialogs::DSMessageBox msg(this);
-            msg.mBox()->setText(L_S(STR_PAGE_MSG, S_ID(IDS_MSG_TRIGGER), "Trigger"));
-            msg.mBox()->setInformativeText(L_S(STR_PAGE_MSG, S_ID(IDS_MSG_SET_TRI_MULTI_CHANNEL), 
-                                          "Trigger is set on multiple channels!\nCapture will only be triggered when all of these channels match at the same sample."));
-            msg.mBox()->setIcon(QMessageBox::Information);
-
-            QPushButton *noMoreButton = msg.mBox()->addButton(L_S(STR_PAGE_MSG, S_ID(IDS_MSG_NOT_SHOW_AGAIN), "Don't Show Again"), QMessageBox::ActionRole);
-            QPushButton *cancelButton = msg.mBox()->addButton(L_S(STR_PAGE_MSG, S_ID(IDS_MSG_CLEAR_TRIG), "Clear Trig"), QMessageBox::ActionRole);
-            msg.mBox()->addButton(L_S(STR_PAGE_MSG, S_ID(IDS_MSG_CONTINUE), "Continue"), QMessageBox::ActionRole);
-
-            msg.exec();
-
-            if (msg.mBox()->clickedButton() == cancelButton) {
-                for(auto s : _session->get_signals()){
-                    if (s->signal_type() == SR_CHANNEL_LOGIC) {
-                        view::LogicSignal *logicSig = (view::LogicSignal*)s;
-                        logicSig->set_trig(view::LogicSignal::NONTRIG);
-                        logicSig->commit_trig();
-                    }
-                }
-            }
-
-            if (msg.mBox()->clickedButton() == noMoreButton)
-            {
-                app.appOptions.warnofMultiTrig  = false;              
+                logicSig->commit_trig();
             }
         }
     }

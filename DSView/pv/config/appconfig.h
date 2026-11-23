@@ -76,7 +76,6 @@ struct AppOptions
 {   
     int   version;
     bool  quickScroll;
-    bool  warnofMultiTrig;
     bool  originalData;
     bool  ableSaveLog;
     bool  appendLogMode;
