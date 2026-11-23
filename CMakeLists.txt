@@ -314,9 +314,15 @@ set(DSView_SOURCES
     DSView/pv/dock/triggerdock.cpp
     DSView/pv/dock/measuredock.cpp
     DSView/pv/dock/searchdock.cpp
+    DSView/pv/search/searchquery.cpp
+    DSView/pv/search/searchengine.cpp
+    DSView/pv/search/snapshotsource.cpp
+    DSView/pv/search/searchjob.cpp
+    DSView/pv/trigger/buspattern.cpp
+    DSView/pv/trigger/decoderbus.cpp
     DSView/pv/toolbars/logobar.cpp
     DSView/pv/dialogs/about.cpp
-    DSView/pv/dialogs/search.cpp
+    DSView/pv/dialogs/searchdialog.cpp
     DSView/pv/data/dsosnapshot.cpp
     DSView/pv/view/dsosignal.cpp
     DSView/pv/view/dsldial.cpp
@@ -426,9 +432,9 @@ set(DSView_HEADERS
     DSView/pv/dock/triggerdock.h
     DSView/pv/dock/measuredock.h
     DSView/pv/dock/searchdock.h
+    DSView/pv/search/searchjob.h
     DSView/pv/toolbars/logobar.h
     DSView/pv/dialogs/about.h
-    DSView/pv/dialogs/search.h
     DSView/pv/dock/dsotriggerdock.h
     DSView/pv/view/trace.h
     DSView/pv/view/selectableitem.h
