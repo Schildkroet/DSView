@@ -177,7 +177,7 @@
     },
     {
         "id": "IDS_DLG_DBV_RANGE",
-        "text": "DBV范围: "
+        "text": "dBV范围: "
     },
     {
         "id": "IDS_DLG_FFT_OPTIONS",
@@ -321,15 +321,15 @@
     },
     {
         "id": "IDS_DLG_US",
-        "text": "uS"
+        "text": "µs"
     },
     {
         "id": "IDS_DLG_MS",
-        "text": "mS"
+        "text": "ms"
     },
     {
         "id": "IDS_DLG_S",
-        "text": "S"
+        "text": "s"
     },
     {
         "id": "IDS_DLG_TRIGGER_POSITION",
@@ -862,5 +862,37 @@
     {
         "id": "IDS_DLG_SNAP_VSCROLL",
         "text": "滚动时对齐通道"
+    },
+    {
+        "id": "IDS_DLG_GROUP_LOGIC_COLORS",
+        "text": "逻辑通道颜色"
+    },
+    {
+        "id": "IDS_DLG_HIGH_LEVEL_COLOR",
+        "text": "高电平颜色"
+    },
+    {
+        "id": "IDS_DLG_LOW_LEVEL_COLOR",
+        "text": "低电平颜色"
+    },
+    {
+        "id": "IDS_DLG_RESET_COLORS",
+        "text": "重置颜色"
+    },
+    {
+        "id": "IDS_DLG_SHOW_SAMPLE_POINTS",
+        "text": "放大时显示采样点"
+    },
+    {
+        "id": "IDS_DLG_SIGNAL_LINE_WIDTH",
+        "text": "信号线宽"
+    },
+    {
+        "id": "IDS_DLG_CHANNEL_DIVIDER",
+        "text": "通道分隔线"
+    },
+    {
+        "id": "IDS_DLG_GROUP_WAVEFORM_VIEW",
+        "text": "波形视图"
     }
 ]

@@ -159,7 +159,7 @@ void SearchDock::on_previous()
     const auto logic_snapshot = dynamic_cast<data::LogicSnapshot*>(snapshot);
 
     if (logic_snapshot == NULL || logic_snapshot->empty()) {
-        QString strMsg(L_S(STR_PAGE_MSG, S_ID(IDS_MSG_NO_SAMPLE_DATA), "No Sample data!"));
+        QString strMsg(L_S(STR_PAGE_MSG, S_ID(IDS_MSG_NO_SAMPLE_DATA), "No sample data!"));
         MsgBox::Show(strMsg);        
         return;
     }
@@ -223,7 +223,7 @@ void SearchDock::on_next()
     const auto logic_snapshot = dynamic_cast<data::LogicSnapshot*>(snapshot);
 
     if (logic_snapshot == NULL || logic_snapshot->empty()) {
-        QString strMsg(L_S(STR_PAGE_MSG, S_ID(IDS_MSG_NO_SAMPLE_DATA), "No Sample data!"));
+        QString strMsg(L_S(STR_PAGE_MSG, S_ID(IDS_MSG_NO_SAMPLE_DATA), "No sample data!"));
         MsgBox::Show(strMsg);
         return;
     }

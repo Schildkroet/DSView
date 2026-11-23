@@ -77,6 +77,8 @@ public IUiWindow
 
 public:
     static const uint64_t ProgressRows = 100000;
+    // Text annotations a multi-value search skips between two values.
+    static const int MaxSearchSkip = 16;
 
 public:
     ProtocolDock(QWidget *parent, view::View &view, SigSession *session);
@@ -138,6 +140,8 @@ private slots:
     void search_pre();
     void search_nxt();
     void search_done();
+    void search_parse_text();
+    void search_show_count();
     void search_changed();
     void search_update();
     void show_protocol_select(); 

@@ -113,7 +113,7 @@ class Decoder(srd.Decoder):
     api_version = 3
     id = 'numbers_and_state'
     name = 'Numbers and State'
-    longname = 'Interpret bit patters as numbers or state enums'
+    longname = 'Interpret bit patterns as numbers or state enums'
     desc = 'Interpret bit patterns as different kinds of numbers (integer, float, enum).'
     license = 'gplv2+'
     inputs = ['logic']

@@ -416,11 +416,11 @@ bool ProtocolDock::add_protocol_by_id(QString id, bool silent, std::list<pv::dat
  
  void ProtocolDock::on_del_all_protocol(){
      if (_protocol_lay_items.size() == 0){
-        MsgBox::Show(NULL, L_S(STR_PAGE_MSG, S_ID(IDS_MSG_NO_DECODER_DEL), "Have no decoder to remove!"), this);
+        MsgBox::Show(NULL, L_S(STR_PAGE_MSG, S_ID(IDS_MSG_NO_DECODER_DEL), "There is no decoder to remove!"), this);
         return;
      }
 
-    QString strMsg(L_S(STR_PAGE_MSG, S_ID(IDS_MSG_DECODER_CONFIRM_DEL_ALL), "Are you sure to remove all decoder?"));
+    QString strMsg(L_S(STR_PAGE_MSG, S_ID(IDS_MSG_DECODER_CONFIRM_DEL_ALL), "Are you sure you want to remove all decoders?"));
     if (MsgBox::Confirm(strMsg,  this)){
         del_all_protocol();
     }
@@ -635,7 +635,8 @@ void ProtocolDock::nav_table_view()
                 break;
             }
         }
-        QModelIndex index = _model_proxy.mapToSource(_model_proxy.index(row_index, _model_proxy.filterKeyColumn()));
+        // row_index is a row of the full list, not of the search results.
+        QModelIndex index = decoder_model->index(row_index, _model_proxy.filterKeyColumn());
 
         if(index.isValid()){         
 
@@ -695,11 +696,18 @@ void ProtocolDock::search_pre()
         while(i < _str_list.size()) {
             QString nxt = _str_list.at(i);
 
+            // Skip only a few text annotations (ACK, Start...) between the
+            // values: in a column without numbers this would otherwise walk
+            // to the end of the column for every candidate.
+            int skipped = 0;
             do {
                 ann_valid = decoder_stack->list_annotation(&ann, col, row);
                 row++;
             }
-            while(ann_valid && !ann.is_numberic());
+            while(ann_valid && !ann.is_numberic() && ++skipped <= MaxSearchSkip);
+
+            if (ann_valid && !ann.is_numberic())
+                ann_valid = false;
 
             if (ann_valid){
                 QString source = ann.annotations().at(0);
@@ -770,11 +778,18 @@ void ProtocolDock::search_nxt()
         while(i < _str_list.size()) {
             QString nxt = _str_list.at(i);
 
+            // Skip only a few text annotations (ACK, Start...) between the
+            // values: in a column without numbers this would otherwise walk
+            // to the end of the column for every candidate.
+            int skipped = 0;
             do {
                 ann_valid = decoder_stack->list_annotation(&ann, col, row);
                 row++;
             }
-            while(ann_valid && !ann.is_numberic());
+            while(ann_valid && !ann.is_numberic() && ++skipped <= MaxSearchSkip);
+
+            if (ann_valid && !ann.is_numberic())
+                ann_valid = false;
 
             if (ann_valid){
                 QString source = ann.annotations().at(0);
@@ -801,16 +816,36 @@ void ProtocolDock::search_nxt()
     }
 }
 
-void ProtocolDock::search_done()
+// Splits the search text into the values of a multi-value search
+// ("70-70-70"). Only when there is a value on both sides of every '-':
+// text like "->" or "-12" is searched as it is.
+void ProtocolDock::search_parse_text()
 {
     QString str = _ann_search_edit->text().trimmed();
-    QRegularExpression rx("(-)");
-    _str_list = str.split(rx);
-    _model_proxy.setFilterFixedString(_str_list.first());
+    _str_list = str.split('-');
+
+    for (QString &part : _str_list) {
+        part = part.trimmed();
+        if (part.isEmpty()) {
+            _str_list = QStringList(str);
+            break;
+        }
+    }
+}
+
+void ProtocolDock::search_show_count()
+{
     if (_str_list.size() > 1)
         _matchs_label->setText("...");
     else
         _matchs_label->setText(QString::number(_model_proxy.rowCount()));
+}
+
+void ProtocolDock::search_done()
+{
+    search_parse_text();
+    _model_proxy.setFilterFixedString(_str_list.first());
+    search_show_count();
 }
 
 void ProtocolDock::search_changed()
@@ -831,9 +866,13 @@ void ProtocolDock::search_update()
         return;
 
     if (decoder_stack->list_annotation_size(_model_proxy.filterKeyColumn()) > ProgressRows) {
+        // The worker only filters; the widgets are read and updated here,
+        // in the GUI thread.
+        search_parse_text();
+        const QString filter = _str_list.first();
         QFuture<void> future;
-        future = QtConcurrent::run([&]{
-            search_done();
+        future = QtConcurrent::run([this, filter]{
+            _model_proxy.setFilterFixedString(filter);
         });
         Qt::WindowFlags flags = Qt::CustomizeWindowHint;
         QProgressDialog dlg(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_SEARCHING), "Searching..."),
@@ -847,7 +886,12 @@ void ProtocolDock::search_update()
         connect(&watcher,SIGNAL(finished()),&dlg,SLOT(cancel()));
         watcher.setFuture(future);
 
-        dlg.exec();
+        // If the search finished before the watcher was set up, finished()
+        // never comes and the dialog would wait forever.
+        if (!future.isFinished())
+            dlg.exec();
+        future.waitForFinished();
+        search_show_count();
     } else {
         search_done();
     }
@@ -868,7 +912,7 @@ void ProtocolDock::OnProtocolSetting(void *handle){
 }
 
 void ProtocolDock::OnProtocolDelete(void *handle){
-    QString strMsg(L_S(STR_PAGE_MSG, S_ID(IDS_MSG_DECODER_CONFIRM_DEL), "Are you sure to remove this decoder?"));
+    QString strMsg(L_S(STR_PAGE_MSG, S_ID(IDS_MSG_DECODER_CONFIRM_DEL), "Are you sure you want to remove this decoder?"));
 
     if (!MsgBox::Confirm(strMsg, this)){
         return;

@@ -761,6 +761,23 @@ else()
 endif()
 
 #===============================================================================
+#= Uninstall: `sudo make uninstall`, in the source root (wrapper) or in the
+#= build folder, or `sudo cmake --build build --target uninstall`.
+#= Removes what the last install from this build folder put on the system;
+#= see CMake/cmake_uninstall.cmake.in. Windows has the installer's own.
+#-------------------------------------------------------------------------------
+
+if(NOT WIN32)
+    configure_file(
+        ${PROJECT_SOURCE_DIR}/CMake/cmake_uninstall.cmake.in
+        ${PROJECT_BINARY_DIR}/cmake_uninstall.cmake
+        @ONLY)
+    add_custom_target(uninstall
+        COMMAND ${CMAKE_COMMAND} -P ${PROJECT_BINARY_DIR}/cmake_uninstall.cmake
+        COMMENT "Removing the installed DSView files")
+endif()
+
+#===============================================================================
 #= Packaging (handled by CPack)
 #-------------------------------------------------------------------------------
 
@@ -779,8 +796,11 @@ set(CPACK_SOURCE_GENERATOR "TGZ")
 # takes effect without requiring a reboot or manual `udevadm` invocation.
 # CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA is ignored by every generator except DEB,
 # so this is safe to set unconditionally.
+# prerm clears the Python caches in the decoder folder, which would otherwise
+# keep dpkg from removing it.
 set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA
     "${CMAKE_CURRENT_SOURCE_DIR}/DSView/packaging/debian/postinst"
+    "${CMAKE_CURRENT_SOURCE_DIR}/DSView/packaging/debian/prerm"
     "${CMAKE_CURRENT_SOURCE_DIR}/DSView/packaging/debian/postrm"
 )
 

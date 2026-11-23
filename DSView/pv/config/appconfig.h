@@ -68,6 +68,10 @@ public:
 #define APP_CONFIG_VERSION  3
 #define NO_POINT_VALUE  -10000
 
+// Default colours for logic trace levels.
+#define DEFAULT_LOGIC_HIGH_COLOR  QColor(0x00, 0xC0, 0x00)
+#define DEFAULT_LOGIC_LOW_COLOR   QColor(0x7E, 0x7E, 0x7E)
+
 struct AppOptions
 {   
     int   version;
@@ -98,6 +102,11 @@ struct AppOptions
     float dsoSignalLineWidth;
     int   toolbarIconSize; // in px, 0 = the style's default
     int dsoPersistenceMs; // 0 = off; fade-out time of previous scope frames
+    bool  colorLogicHigh;     // Draw HIGH segments of logic traces in logicHighColor
+    bool  colorLogicLow;      // Draw LOW segments of logic traces in logicLowColor
+    QColor logicHighColor;    // HIGH segment colour (colorLogicHigh)
+    QColor logicLowColor;     // LOW segment colour (colorLogicLow)
+    bool  showSamplePoints;   // Mark each sample with a dot when zoomed in
     std::vector<StringPair> m_protocolFormats;
 };
  

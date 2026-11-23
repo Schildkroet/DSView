@@ -1438,6 +1438,13 @@ static int dev_acquisition_start(struct sr_dev_inst *sdi, void *cb_data)
     if (vdev->trig_pos != 0)
     {
         struct ds_trigger_pos session_trigger;
+        /* A file only knows the position. Clear the other fields, which the
+         * hardware fills, and set status bit 0 ("triggered"): DSView ignores
+         * the position in logic mode without it. Left uninitialised, it
+         * depended on leftover stack memory whether a loaded file showed its
+         * trigger at all. */
+        memset(&session_trigger, 0, sizeof(session_trigger));
+        session_trigger.status = 1;
         if (sdi->mode == DSO)
             session_trigger.real_pos = vdev->trig_pos * vdev->enabled_probes / vdev->num_probes;
         else

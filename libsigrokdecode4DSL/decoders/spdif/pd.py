@@ -48,7 +48,7 @@ class Decoder(srd.Decoder):
         ('samples', 'Audio Samples'),
         ('validity', 'Data Valid'),
         ('subcode', 'Subcode data'),
-        ('chan_stat', 'Channnel Status'),
+        ('chan_stat', 'Channel Status'),
         ('parity', 'Parity Bit'),
     )
     annotation_rows = (

@@ -1,0 +1,199 @@
+##
+## This file is part of the DSView project.
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2 of the License, or
+## (at your option) any later version.
+##
+
+##
+## Undoes `make install`. CMakeLists.txt turns this template into
+## <build>/cmake_uninstall.cmake, run by `make uninstall` (wrapper or build
+## folder) or `cmake --build build --target uninstall`.
+##
+## It removes:
+##  - every file listed in install_manifest.txt, which the last install from
+##    this build folder wrote;
+##  - Python caches (__pycache__) in the decoder folder, written there when
+##    DSView runs as root;
+##  - the folders the install created (share/DSView,
+##    share/libsigrokdecode4DSL), once nothing else is left in them.
+## Anything else found in those folders, such as decoders you added yourself,
+## is kept and listed. So are files that belong to an installed package: the
+## .deb from `make deb` puts the desktop entry, metainfo and udev rule at the
+## same paths, and removing them would break it.
+## Settings in home folders are not touched here: the wrapper's `make purge`
+## removes those too, after running this with -DPURGE=ON.
+##
+
+cmake_minimum_required(VERSION 3.10)
+
+# -DMANIFEST=<file> undoes an install made from another build folder.
+if(NOT DEFINED MANIFEST)
+    set(MANIFEST "@PROJECT_BINARY_DIR@/install_manifest.txt")
+endif()
+
+if(NOT EXISTS "${MANIFEST}")
+    message(FATAL_ERROR
+        "Nothing to uninstall from this build folder: ${MANIFEST} is missing.\n"
+        "`make install` writes it. If DSView was installed from another build "
+        "folder, run `make uninstall` there.")
+endif()
+
+file(STRINGS "${MANIFEST}" installed)
+
+# Which of these files does an installed package own? One dpkg-query call for
+# all; it prints "package: /path" for each owned one.
+set(owned "")
+set(owners "")
+find_program(DPKG_QUERY dpkg-query)
+if(DPKG_QUERY AND installed)
+    execute_process(COMMAND "${DPKG_QUERY}" -S ${installed}
+                    OUTPUT_VARIABLE dpkg_out ERROR_QUIET)
+    string(REPLACE "\n" ";" dpkg_lines "${dpkg_out}")
+    foreach(line IN LISTS dpkg_lines)
+        if(line MATCHES "^([^:]+): (/.*)$")
+            list(APPEND owners "${CMAKE_MATCH_1}")
+            list(APPEND owned "${CMAKE_MATCH_2}")
+        endif()
+    endforeach()
+endif()
+set(kept_owned "")
+
+set(removed 0)
+set(failed "")
+set(roots "")
+set(udev_changed FALSE)
+
+foreach(f IN LISTS installed)
+    if(f STREQUAL "")
+        continue()
+    endif()
+
+    # The folders that belong to DSView alone.
+    if(f MATCHES "^(.*/share/(DSView|libsigrokdecode4DSL))/")
+        list(APPEND roots "${CMAKE_MATCH_1}")
+    endif()
+
+    list(FIND owned "${f}" owned_index)
+    if(NOT owned_index EQUAL -1)
+        list(APPEND kept_owned "${f}")
+        continue()
+    endif()
+
+    if(IS_SYMLINK "${f}" OR EXISTS "${f}")
+        execute_process(COMMAND "${CMAKE_COMMAND}" -E remove "${f}"
+                        OUTPUT_QUIET ERROR_QUIET)
+        if(IS_SYMLINK "${f}" OR EXISTS "${f}")
+            list(APPEND failed "${f}")
+        else()
+            math(EXPR removed "${removed} + 1")
+            if(f MATCHES "/udev/rules\\.d/")
+                set(udev_changed TRUE)
+            endif()
+        endif()
+    endif()
+endforeach()
+
+if(failed)
+    list(LENGTH failed n)
+    # The first ten are enough to see what is going on.
+    set(shown "")
+    set(i 0)
+    foreach(f IN LISTS failed)
+        if(i LESS 10)
+            list(APPEND shown "${f}")
+        endif()
+        math(EXPR i "${i} + 1")
+    endforeach()
+    if(n GREATER 10)
+        math(EXPR more "${n} - 10")
+        list(APPEND shown "... and ${more} more")
+    endif()
+    string(REPLACE ";" "\n  " failed_text "${shown}")
+    message(FATAL_ERROR
+        "Could not remove ${n} installed files, most likely for lack of "
+        "permission. Run it as root: `sudo make uninstall`.\n  ${failed_text}")
+endif()
+
+# Clear out the folders DSView owns: caches first, then empty folders from the
+# deepest up. Whatever else is left stays, and is listed.
+set(kept "")
+if(roots)
+    list(REMOVE_DUPLICATES roots)
+endif()
+foreach(root IN LISTS roots)
+    if(NOT IS_DIRECTORY "${root}")
+        continue()
+    endif()
+
+    file(GLOB_RECURSE entries LIST_DIRECTORIES true "${root}/*")
+    foreach(e IN LISTS entries)
+        if(IS_DIRECTORY "${e}" AND e MATCHES "/__pycache__$")
+            file(REMOVE_RECURSE "${e}")
+        endif()
+    endforeach()
+
+    file(GLOB_RECURSE dirs LIST_DIRECTORIES true "${root}/*")
+    set(only_dirs "")
+    foreach(d IN LISTS dirs)
+        if(IS_DIRECTORY "${d}" AND NOT IS_SYMLINK "${d}")
+            list(APPEND only_dirs "${d}")
+        endif()
+    endforeach()
+    list(APPEND only_dirs "${root}")
+    # A folder sorts before everything inside it, so reversed order visits
+    # children before their parents.
+    list(SORT only_dirs)
+    list(REVERSE only_dirs)
+    foreach(d IN LISTS only_dirs)
+        file(GLOB children LIST_DIRECTORIES true "${d}/*" "${d}/.*")
+        if(NOT children)
+            file(REMOVE_RECURSE "${d}")
+        endif()
+    endforeach()
+
+    if(EXISTS "${root}")
+        file(GLOB_RECURSE left "${root}/*")
+        foreach(l IN LISTS left)
+            list(FIND kept_owned "${l}" owned_index)
+            if(owned_index EQUAL -1)
+                list(APPEND kept "${l}")
+            endif()
+        endforeach()
+    endif()
+endforeach()
+
+if(udev_changed)
+    find_program(UDEVADM udevadm)
+    if(UDEVADM)
+        execute_process(COMMAND "${UDEVADM}" control --reload-rules
+                        OUTPUT_QUIET ERROR_QUIET)
+    endif()
+endif()
+
+if(removed EQUAL 0)
+    message(STATUS "Nothing to remove: DSView is not installed (anymore) from this build folder.")
+else()
+    message(STATUS "Uninstalled DSView: removed ${removed} files.")
+endif()
+
+if(kept_owned)
+    list(REMOVE_DUPLICATES owners)
+    string(REPLACE ";" ", " owners_text "${owners}")
+    string(REPLACE ";" "\n     " owned_text "${kept_owned}")
+    message(STATUS "Kept, as they belong to the installed package ${owners_text} "
+                   "(apt removes them with it):\n     ${owned_text}")
+endif()
+
+if(kept)
+    string(REPLACE ";" "\n     " kept_text "${kept}")
+    message(STATUS "Kept, as they were not installed by DSView:\n     ${kept_text}")
+endif()
+
+# `make purge` (-DPURGE=ON) removes the settings right after this.
+if(NOT PURGE)
+    message(STATUS "Your settings are kept (~/.config/DreamSourceLab, "
+                   "~/.local/share/DreamSourceLab). `sudo make purge` removes them too.")
+endif()

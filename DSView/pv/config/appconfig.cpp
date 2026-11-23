@@ -107,6 +107,18 @@ static void setFiled(const char *key, QSettings &st, float f)
     st.setValue(key, f);
 }
 
+static void getFiled(const char *key, QSettings &st, QColor &f, const QColor &dv)
+{
+    f = QColor(st.value(key, "").toString());
+    if (!f.isValid())
+        f = dv;
+}
+
+static void setFiled(const char *key, QSettings &st, const QColor &f)
+{
+    st.setValue(key, f.name(QColor::HexArgb));
+}
+
 ///------ app
 static void _loadApp(AppOptions &o, QSettings &st)
 {
@@ -139,6 +151,11 @@ static void _loadApp(AppOptions &o, QSettings &st)
     getFiled("dsoSignalLineWidth", st, o.dsoSignalLineWidth, 1.0f);
     getFiled("dsoPersistenceMs", st, o.dsoPersistenceMs, 0);
     getFiled("toolbarIconSize", st, o.toolbarIconSize, DefaultToolbarIconSize);
+    getFiled("colorLogicHigh", st, o.colorLogicHigh, false);
+    getFiled("colorLogicLow", st, o.colorLogicLow, false);
+    getFiled("logicHighColor", st, o.logicHighColor, DEFAULT_LOGIC_HIGH_COLOR);
+    getFiled("logicLowColor", st, o.logicLowColor, DEFAULT_LOGIC_LOW_COLOR);
+    getFiled("showSamplePoints", st, o.showSamplePoints, true);
 
     o.warnofMultiTrig = true;
 
@@ -217,6 +234,11 @@ static void _saveApp(AppOptions &o, QSettings &st)
     setFiled("dsoSignalLineWidth", st, o.dsoSignalLineWidth);
     setFiled("dsoPersistenceMs", st, o.dsoPersistenceMs);
     setFiled("toolbarIconSize", st, o.toolbarIconSize);
+    setFiled("colorLogicHigh", st, o.colorLogicHigh);
+    setFiled("colorLogicLow", st, o.colorLogicLow);
+    setFiled("logicHighColor", st, o.logicHighColor);
+    setFiled("logicLowColor", st, o.logicLowColor);
+    setFiled("showSamplePoints", st, o.showSamplePoints);
 
     QString fmt =  FormatArrayToString(o.m_protocolFormats);
     setFiled("protocalFormats", st, fmt);

@@ -194,5 +194,9 @@
     {
         "id": "IDS_TOOLBAR_HELP_LOG",
         "text": "日志选项(&L)"
+    },
+    {
+        "id": "IDS_TOOLBAR_DSO_SPLIT",
+        "text": "分屏"
     }
 ]

@@ -1,0 +1,15 @@
+#!/bin/sh
+# Python writes byte-code caches (__pycache__) next to the protocol decoders
+# when DSView runs as root. dpkg doesn't know these files, so on removal they
+# would keep the decoder folders from being deleted: clear them first. Also on
+# upgrade, so caches of decoders that are gone don't linger.
+# The path follows CPACK_PACKAGING_INSTALL_PREFIX (/usr) in CMakeLists.txt.
+set -e
+
+DECODERS=/usr/share/libsigrokdecode4DSL/decoders
+
+if [ -d "$DECODERS" ]; then
+    find "$DECODERS" -type d -name __pycache__ -prune -exec rm -rf {} + || true
+fi
+
+exit 0

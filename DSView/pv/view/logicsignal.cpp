@@ -182,21 +182,35 @@ void LogicSignal::paint_mid_align(QPainter &p, int left, int right, QColor fore,
     int preX = 0;
     int preY = first_sample ? high_offset : low_offset;
     int x = preX;
-    std::vector<QLine> wave_lines;
+
+    const AppOptions &opt = AppConfig::Instance().appOptions;
+    const float line_width = opt.logicSignalLineWidth;
+
+    // Horizontal segments are kept apart by level so HIGH and LOW can be
+    // coloured separately; vertical edges keep the channel colour.
+    std::vector<QLine> high_lines;
+    std::vector<QLine> low_lines;
+    std::vector<QLine> edge_lines;
     std::vector<QRectF> edge_blocks;
-    const float line_width = AppConfig::Instance().appOptions.logicSignalLineWidth;
+
+    auto add_level_line = [&](int x0, int x1, int ly) {
+        if (ly == high_offset)
+            high_lines.push_back(QLine(x0, ly, x1, ly));
+        else
+            low_lines.push_back(QLine(x0, ly, x1, ly));
+    };
 
     if (_cur_edges.size() < max_togs) {
         std::vector<std::pair<uint16_t, bool>>::const_iterator i;
         for (i = _cur_edges.begin() + 1; i != _cur_edges.end() - 1; i++) {
             x = (*i).first;
-            wave_lines.push_back(QLine(preX, preY, x, preY));
-            wave_lines.push_back(QLine(x, high_offset, x, low_offset));
+            add_level_line(preX, x, preY);
+            edge_lines.push_back(QLine(x, high_offset, x, low_offset));
             preX = x;
             preY = (*i).second ? high_offset : low_offset;
         }
         x = (*i).first;
-        wave_lines.push_back(QLine(preX, preY, x, preY));
+        add_level_line(preX, x, preY);
     }
     else if (_cur_pulses.size() > 0) {
         std::vector<std::pair<bool, bool>>::const_iterator i = _cur_pulses.begin();
@@ -204,7 +218,7 @@ void LogicSignal::paint_mid_align(QPainter &p, int left, int right, QColor fore,
 
         while (i != last) {
             if ((*i).first) {
-                wave_lines.push_back(QLine(preX, preY, x, preY));
+                add_level_line(preX, x, preY);
 
                 // Edges on several pixels in a row paint a solid block
                 // between the levels. Draw it as one rectangle: with
@@ -214,7 +228,7 @@ void LogicSignal::paint_mid_align(QPainter &p, int left, int right, QColor fore,
                     run_end++;
 
                 if (run_end == i) {
-                    wave_lines.push_back(QLine(x, high_offset, x, low_offset));
+                    edge_lines.push_back(QLine(x, high_offset, x, low_offset));
                 }
                 else {
                     const int run_x = x + (run_end - i);
@@ -233,11 +247,13 @@ void LogicSignal::paint_mid_align(QPainter &p, int left, int right, QColor fore,
             x++;
             i++;
         }
-        wave_lines.push_back(QLine(preX, preY, x, preY));
+        add_level_line(preX, x, preY);
     }
 
     QColor defaultColour = get_default_colour();
     QColor lineColour = _colour.isValid() ? _colour : (defaultColour.isValid() ? defaultColour : fore);
+    const QColor highColour = opt.colorLogicHigh ? opt.logicHighColor : lineColour;
+    const QColor lowColour = opt.colorLogicLow ? opt.logicLowColor : lineColour;
 
     if (!edge_blocks.empty()) {
         const QBrush brush = p.brush();
@@ -248,18 +264,24 @@ void LogicSignal::paint_mid_align(QPainter &p, int left, int right, QColor fore,
     }
 
     p.setPen(QPen(lineColour, line_width));
-    p.drawLines(wave_lines.data(), wave_lines.size());
+    p.drawLines(edge_lines.data(), edge_lines.size());
+
+    p.setPen(QPen(highColour, line_width));
+    p.drawLines(high_lines.data(), high_lines.size());
+
+    p.setPen(QPen(lowColour, line_width));
+    p.drawLines(low_lines.data(), low_lines.size());
 
     // Zoomed in far enough that samples are clearly apart: mark each one,
     // so the actual sample points are visible along the waveform.
-    if (1.0 / samples_per_pixel >= SampleDotMinSpacing) {
-        const double dot = std::max(4.0, AppConfig::Instance().appOptions.logicSignalLineWidth + SampleDotGrow);
+    if (opt.showSamplePoints && 1.0 / samples_per_pixel >= SampleDotMinSpacing) {
+        const double dot = std::max(4.0, opt.logicSignalLineWidth + SampleDotGrow);
         p.setPen(Qt::NoPen);
-        p.setBrush(lineColour);
         for (uint64_t i = start_index; i <= end_index; i++) {
             const double sx = i / samples_per_pixel - offset;
-            const double sy = _data->get_sample(i, _probe->index) ? high_offset : low_offset;
-            p.drawEllipse(QPointF(sx, sy), dot / 2, dot / 2);
+            const bool level = _data->get_sample(i, _probe->index);
+            p.setBrush(level ? highColour : lowColour);
+            p.drawEllipse(QPointF(sx, level ? high_offset : low_offset), dot / 2, dot / 2);
         }
         p.setBrush(Qt::NoBrush);
     }

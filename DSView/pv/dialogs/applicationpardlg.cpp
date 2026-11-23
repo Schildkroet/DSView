@@ -43,6 +43,11 @@
 #include <QWindow>
 #include <QStyle>
 #include <QEvent>
+#include <QPushButton>
+#include <QColorDialog>
+#include <QPixmap>
+#include <QIcon>
+#include <QPainter>
 
 #include "../config/appconfig.h"
 #include "../ui/langresource.h"
@@ -150,6 +155,28 @@ private:
     QScrollArea *_scroll;
     QWidget     *_screenRef;
 };
+
+// Shows a colour swatch on a button. An icon is used rather than a style
+// sheet so the current theme can't override it.
+void set_color_button(QPushButton *btn, const QColor &color)
+{
+    QPixmap pix(32, 16);
+    pix.fill(color);
+    {
+        QPainter p(&pix);
+        p.setPen(QColor(0x80, 0x80, 0x80));
+        p.drawRect(pix.rect().adjusted(0, 0, -1, -1));
+    }
+    btn->setIcon(QIcon(pix));
+    btn->setIconSize(pix.size());
+    btn->setToolTip(color.name());
+    btn->setProperty("color", color);
+}
+
+QColor color_of_button(QPushButton *btn)
+{
+    return btn->property("color").value<QColor>();
+}
 
 } // namespace
 
@@ -322,6 +349,21 @@ bool ApplicationParamDlg::ShowDlg(QWidget *parent)
     spinBox_dsoLineWidth->setValue(app.appOptions.dsoSignalLineWidth);
     spinBox_dsoLineWidth->setSuffix(" px");
 
+    // Logic trace colours
+    QCheckBox *ck_colorLogicHigh = new QCheckBox();
+    ck_colorLogicHigh->setChecked(app.appOptions.colorLogicHigh);
+    QCheckBox *ck_colorLogicLow = new QCheckBox();
+    ck_colorLogicLow->setChecked(app.appOptions.colorLogicLow);
+
+    QPushButton *bt_highColor = new QPushButton();
+    QPushButton *bt_lowColor = new QPushButton();
+    QPushButton *bt_resetColors = new QPushButton(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_RESET_COLORS), "Reset colors"));
+    set_color_button(bt_highColor, app.appOptions.logicHighColor);
+    set_color_button(bt_lowColor, app.appOptions.logicLowColor);
+
+    QCheckBox *ck_showSamplePoints = new QCheckBox();
+    ck_showSamplePoints->setChecked(app.appOptions.showSamplePoints);
+
     QSpinBox *spinBox_dsoPersistence = new XSpinBox();
     spinBox_dsoPersistence->setRange(0, 10000);
     spinBox_dsoPersistence->setSingleStep(100);
@@ -438,7 +480,7 @@ bool ApplicationParamDlg::ShowDlg(QWidget *parent)
     logicLay->addWidget(ck_quickScroll, 0, 1, Qt::AlignRight);
     logicLay->addWidget(new QLabel(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_USE_ABORT_DATA_REPEAT), "Used abort data")), 1, 0, Qt::AlignLeft); 
     logicLay->addWidget(ck_abortData, 1, 1, Qt::AlignRight);
-    logicLay->addWidget(new QLabel(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_AUTO_SCROLL_LATEAST_DATA), "Auto scoll latest")), 2, 0, Qt::AlignLeft); 
+    logicLay->addWidget(new QLabel(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_AUTO_SCROLL_LATEAST_DATA), "Auto scroll to latest data")), 2, 0, Qt::AlignLeft); 
     logicLay->addWidget(ck_autoScrollLatestData, 2, 1, Qt::AlignRight);
     logicLay->addWidget(new QLabel(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_VERTICAL_SCROLL_ACTION), "Vertical Scroll Action")), 3, 0, Qt::AlignLeft);
     logicLay->addLayout(hl_verticalScrollAction, 3, 1, Qt::AlignRight);
@@ -468,6 +510,46 @@ bool ApplicationParamDlg::ShowDlg(QWidget *parent)
         + 1 );
     lay->addWidget(logicGroup);
 
+    // Logic trace colours group
+    QGroupBox *colorGroup = new QGroupBox(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_GROUP_LOGIC_COLORS), "Logic trace colors"));
+    QGridLayout *colorLay = new QGridLayout();
+    colorLay->setContentsMargins(10,15,15,10);
+    colorLay->setAlignment(Qt::AlignTop);
+    colorLay->setColumnStretch(0, 1);
+    colorGroup->setLayout(colorLay);
+    const QString highTitle = L_S(STR_PAGE_DLG, S_ID(IDS_DLG_HIGH_LEVEL_COLOR), "High level color");
+    const QString lowTitle = L_S(STR_PAGE_DLG, S_ID(IDS_DLG_LOW_LEVEL_COLOR), "Low level color");
+    // One row per colour: its swatch, then the switch that turns it on, so
+    // each level can keep the channel colour or take its own.
+    colorLay->addWidget(new QLabel(highTitle), 0, 0, Qt::AlignLeft);
+    colorLay->addWidget(bt_highColor, 0, 1, Qt::AlignRight);
+    colorLay->addWidget(ck_colorLogicHigh, 0, 2, Qt::AlignRight);
+    colorLay->addWidget(new QLabel(lowTitle), 1, 0, Qt::AlignLeft);
+    colorLay->addWidget(bt_lowColor, 1, 1, Qt::AlignRight);
+    colorLay->addWidget(ck_colorLogicLow, 1, 2, Qt::AlignRight);
+    colorLay->addWidget(bt_resetColors, 2, 1, 1, 2, Qt::AlignRight);
+    lay->addWidget(colorGroup);
+
+    auto pick_color = [&dlg](QPushButton *btn, const QString &title) {
+        QColor c = QColorDialog::getColor(color_of_button(btn), &dlg, title);
+        if (c.isValid())
+            set_color_button(btn, c);
+        return c.isValid();
+    };
+    // Picking a colour turns it on.
+    QObject::connect(bt_highColor, &QPushButton::clicked, [=]() {
+        if (pick_color(bt_highColor, highTitle))
+            ck_colorLogicHigh->setChecked(true);
+    });
+    QObject::connect(bt_lowColor, &QPushButton::clicked, [=]() {
+        if (pick_color(bt_lowColor, lowTitle))
+            ck_colorLogicLow->setChecked(true);
+    });
+    QObject::connect(bt_resetColors, &QPushButton::clicked, [=]() {
+        set_color_button(bt_highColor, DEFAULT_LOGIC_HIGH_COLOR);
+        set_color_button(bt_lowColor, DEFAULT_LOGIC_LOW_COLOR);
+    });
+
     //Scope group
     QGroupBox *dsoGroup = new QGroupBox(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_GROUP_DSO), "Scope"));
     QGridLayout *dsoLay = new QGridLayout();
@@ -475,7 +557,7 @@ bool ApplicationParamDlg::ShowDlg(QWidget *parent)
     dsoLay->setAlignment(Qt::AlignTop);
     dsoLay->setColumnStretch(0, 1);
     dsoGroup->setLayout(dsoLay);
-    dsoLay->addWidget(new QLabel(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_TRIG_DISPLAY_MIDDLE), "Tig pos in middle")), 0, 0, Qt::AlignLeft);
+    dsoLay->addWidget(new QLabel(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_TRIG_DISPLAY_MIDDLE), "Show trigger position in the middle")), 0, 0, Qt::AlignLeft);
     dsoLay->addWidget(ck_trigInMid, 0, 1, Qt::AlignRight);
     dsoLay->addWidget(new QLabel(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_SIGNAL_LINE_WIDTH), "Signal line width")), 1, 0, Qt::AlignLeft);
     dsoLay->addWidget(spinBox_dsoLineWidth, 1, 1, Qt::AlignRight);
@@ -501,6 +583,17 @@ bool ApplicationParamDlg::ShowDlg(QWidget *parent)
     uiLay->addWidget(new QLabel(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_DONT_ASK_SAVE_ON_EXIT), "Do not ask to save captured data")), 4, 0, Qt::AlignLeft);
     uiLay->addWidget(ck_dontAskSaveOnExit, 4, 1, Qt::AlignRight);
     lay->addWidget(uiGroup);
+
+    // Waveform view group: aids drawn over the traces
+    QGroupBox *viewGroup = new QGroupBox(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_GROUP_WAVEFORM_VIEW), "Waveform view"));
+    QGridLayout *viewLay = new QGridLayout();
+    viewLay->setContentsMargins(10,15,15,10);
+    viewLay->setAlignment(Qt::AlignTop);
+    viewLay->setColumnStretch(0, 1);
+    viewGroup->setLayout(viewLay);
+    viewLay->addWidget(new QLabel(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_SHOW_SAMPLE_POINTS), "Show sample points when zoomed in")), 0, 0, Qt::AlignLeft);
+    viewLay->addWidget(ck_showSamplePoints, 0, 1, Qt::AlignRight);
+    lay->addWidget(viewGroup);
 
     // The groups scroll when the dialog would not fit on the screen.
     QWidget *content = new QWidget();
@@ -602,6 +695,26 @@ bool ApplicationParamDlg::ShowDlg(QWidget *parent)
         }
         if (app.appOptions.logicSnapVScroll != ck_snapVScroll->isChecked()) {
             app.appOptions.logicSnapVScroll = ck_snapVScroll->isChecked();
+            bAppChanged = true;
+        }
+        if (app.appOptions.colorLogicHigh != ck_colorLogicHigh->isChecked()) {
+            app.appOptions.colorLogicHigh = ck_colorLogicHigh->isChecked();
+            bAppChanged = true;
+        }
+        if (app.appOptions.colorLogicLow != ck_colorLogicLow->isChecked()) {
+            app.appOptions.colorLogicLow = ck_colorLogicLow->isChecked();
+            bAppChanged = true;
+        }
+        if (app.appOptions.logicHighColor != color_of_button(bt_highColor)) {
+            app.appOptions.logicHighColor = color_of_button(bt_highColor);
+            bAppChanged = true;
+        }
+        if (app.appOptions.logicLowColor != color_of_button(bt_lowColor)) {
+            app.appOptions.logicLowColor = color_of_button(bt_lowColor);
+            bAppChanged = true;
+        }
+        if (app.appOptions.showSamplePoints != ck_showSamplePoints->isChecked()) {
+            app.appOptions.showSamplePoints = ck_showSamplePoints->isChecked();
             bAppChanged = true;
         }
         if (bAppChanged){

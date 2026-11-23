@@ -26,7 +26,7 @@ class Decoder(srd.Decoder):
 	id = 'pxx1'
 	name = 'PXX1'
 	longname = 'PXX1 modulation'
-	desc = 'FrSky PXX1(R9M) Protcol'
+	desc = 'FrSky PXX1(R9M) Protocol'
 	license = 'Pirate'
 	inputs = ['logic']
 	outputs = []
@@ -53,7 +53,7 @@ class Decoder(srd.Decoder):
 		('is_euplpus', 'EU-PLUS'),
 		('disable_sport', 'Disable SPort'),
 		('power_level', 'Power Level'),
-		('rx_highchan', 'Receive Hight Channel'),
+		('rx_highchan', 'Receive High Channel'),
 		('telemetry_off', 'Telemetry Off'),
 		('external_antena', 'ExternalAntena'),
 		('CRC', 'CRC'),

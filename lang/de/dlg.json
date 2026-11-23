@@ -177,7 +177,7 @@
     },
     {
         "id": "IDS_DLG_DBV_RANGE",
-        "text": "DBV-Bereich: "
+        "text": "dBV-Bereich: "
     },
     {
         "id": "IDS_DLG_FFT_OPTIONS",
@@ -858,5 +858,37 @@
     {
         "id": "IDS_DLG_SNAP_VSCROLL",
         "text": "Beim Scrollen an Kanälen einrasten"
+    },
+    {
+        "id": "IDS_DLG_GROUP_LOGIC_COLORS",
+        "text": "Farben der Logikkanäle"
+    },
+    {
+        "id": "IDS_DLG_HIGH_LEVEL_COLOR",
+        "text": "Farbe High-Pegel"
+    },
+    {
+        "id": "IDS_DLG_LOW_LEVEL_COLOR",
+        "text": "Farbe Low-Pegel"
+    },
+    {
+        "id": "IDS_DLG_RESET_COLORS",
+        "text": "Farben zurücksetzen"
+    },
+    {
+        "id": "IDS_DLG_SHOW_SAMPLE_POINTS",
+        "text": "Abtastpunkte beim Hineinzoomen zeigen"
+    },
+    {
+        "id": "IDS_DLG_SIGNAL_LINE_WIDTH",
+        "text": "Signal-Linienbreite"
+    },
+    {
+        "id": "IDS_DLG_CHANNEL_DIVIDER",
+        "text": "Trennlinie zwischen Kanälen"
+    },
+    {
+        "id": "IDS_DLG_GROUP_WAVEFORM_VIEW",
+        "text": "Kurvenansicht"
     }
 ]

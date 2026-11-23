@@ -208,7 +208,7 @@ class Decoder(srd.Decoder):
             'values': (0, 1), 'idn':'dec_qspi_opt_cpha'},
         {'id': 'bitorder', 'desc': 'Bit order',
             'default': 'msb-first', 'values': ('msb-first', 'lsb-first'), 'idn':'dec_qspi_opt_bitorder'},
-        {'id': 'ads', 'desc': 'Adress Mode', 'default': '24-Bit Address',
+        {'id': 'ads', 'desc': 'Address Mode', 'default': '24-Bit Address',
             'values': ('32-Bit Address', '24-Bit Address'), 'idn':'dec_qspi_adress_mode'},
         {'id': 'frame', 'desc': 'Frame Decoder', 'default': 'no',
             'values': ('yes', 'no'), 'idn':'dec_qspi_opt_frame'},

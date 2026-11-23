@@ -32,7 +32,7 @@ class Decoder(srd.Decoder):
     id = 'mrf24j40'
     name = 'MRF24J40'
     longname = 'Microchip MRF24J40'
-    desc = 'IEEE 802.15.4 2.4 GHz RF tranceiver chip.'
+    desc = 'IEEE 802.15.4 2.4 GHz RF transceiver chip.'
     license = 'gplv2+'
     inputs = ['spi']
     outputs = []

@@ -79,6 +79,24 @@ Step3: Building
  $ cmake --build build -j "$(nproc)"
  $ sudo cmake --install build
 
+Uninstalling
+------------
+
+Close DSView first, then, in the same source folder:
+ $ sudo make uninstall     remove everything `make install` put on the system
+ $ sudo make purge         the same, and delete your DSView settings too
+
+`uninstall` removes the files listed in build/install_manifest.txt, the
+Python caches in the decoder folder, and the DSView folders once empty.
+Anything it did not install (a decoder you added yourself, say) is kept and
+listed. Your settings (~/.config/DreamSourceLab/DSView.conf and
+~/.local/share/DreamSourceLab/DSView) stay, unless you use `purge`, which
+also removes those of the user behind sudo and root's.
+
+For an install made from another build folder, name its manifest:
+ $ sudo make uninstall MANIFEST=../old-tree/build/install_manifest.txt
+Without the wrapper: sudo cmake --build build --target uninstall
+
 See the following wiki page for more (OS-specific) instructions:
  http://sigrok.org/wiki/Building
  

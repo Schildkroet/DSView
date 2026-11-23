@@ -25,6 +25,8 @@
 ##
 ##   make             configure ./build if needed, then build (in parallel)
 ##   make install     build if needed, then install (`sudo make install`)
+##   make uninstall   remove what `make install` installed (`sudo make uninstall`)
+##   make purge       uninstall, and delete the DSView settings too
 ##   make deb         build a .deb package in ./build
 ##   make clean       remove compiled objects, keep the configuration
 ##   make distclean   remove ./build entirely
@@ -63,7 +65,7 @@ AS_USER := sudo -u $(SUDO_USER)
 endif
 endif
 
-.PHONY: all build configure install deb clean distclean
+.PHONY: all build configure install uninstall purge deb clean distclean
 
 all: build
 
@@ -80,6 +82,39 @@ install: build
 ifneq ($(AS_USER),)
 	chown $(SUDO_UID):$(SUDO_GID) $(BUILD_DIR)/install_manifest*.txt
 endif
+
+# Removes the files listed in $(BUILD_DIR)/install_manifest.txt, the decoder
+# caches and the then empty DSView folders; keeps anything it didn't install.
+# Compiles nothing. For an install made from another build folder, name its
+# manifest:   sudo make uninstall MANIFEST=../old-tree/build/install_manifest.txt
+# See CMake/cmake_uninstall.cmake.in.
+UNINSTALL = $(SUBCMAKE) $(if $(MANIFEST),-DMANIFEST="$(abspath $(MANIFEST))")
+
+# Only configures, for a build folder from before the uninstall script existed.
+$(BUILD_DIR)/cmake_uninstall.cmake:
+	$(AS_USER) $(SUBCMAKE) -S . -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(CMAKE_ARGS) > /dev/null
+
+uninstall: $(BUILD_DIR)/cmake_uninstall.cmake
+	$(UNINSTALL) -P $<
+
+# Also deletes the settings and device profiles of whoever runs it, of the user
+# behind sudo, and root's (there if DSView was ever started with sudo). Linux
+# locations; other DreamSourceLab programs' files there are left alone.
+# Close DSView first: it writes its settings when it exits.
+PURGE_HOMES := $(sort $(HOME) \
+	$(if $(filter-out root,$(SUDO_USER)),$(shell getent passwd $(SUDO_USER) | cut -d: -f6)))
+
+purge: $(BUILD_DIR)/cmake_uninstall.cmake
+	$(UNINSTALL) -DPURGE=ON -P $<
+	@for h in $(PURGE_HOMES); do \
+		for f in "$$h/.config/DreamSourceLab/DSView.conf" \
+		         "$$h/.config/DreamSourceLab/DSView.conf.lock" \
+		         "$$h/.local/share/DreamSourceLab/DSView"; do \
+			if [ -e "$$f" ]; then rm -rf "$$f" && echo "-- Removed settings: $$f"; fi; \
+		done; \
+		rmdir "$$h/.config/DreamSourceLab" "$$h/.local/share/DreamSourceLab" 2>/dev/null || true; \
+	done
+	@echo "-- DSView and its settings are removed."
 
 deb: build
 	cd $(BUILD_DIR) && $(AS_USER) cpack -G DEB
