@@ -60,6 +60,7 @@ class SearchDataItem{
 public:
     QString     _id;
     QString     _name;
+    QString     _keywords;   // also searched, not shown
     void        *_data_handle;
     QWidget     *_control;
 };
@@ -76,7 +77,8 @@ public:
 
     void ShowDlg(QWidget *editline);
 
-    void AddDataItem(QString id, QString name, void *data_handle);
+    void AddDataItem(QString id, QString name, void *data_handle,
+                     QString keywords = QString());
 
     inline void SetItemClickHandle(ISearchItemClick *click){
         _item_click = click;        

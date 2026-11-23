@@ -182,11 +182,13 @@ void SearchComboBox::ShowDlg(QWidget *editline)
     edit->setFocus();
 }
 
-void SearchComboBox::AddDataItem(QString id, QString name, void *data_handle)
+void SearchComboBox::AddDataItem(QString id, QString name, void *data_handle,
+                                 QString keywords)
 {
     SearchDataItem *item = new SearchDataItem();
     item->_id = id;
     item->_name = name;
+    item->_keywords = keywords;
     item->_data_handle = data_handle;
     this->_items.push_back(item);
 }
@@ -273,7 +275,8 @@ void SearchComboBox::AddDataItem(QString id, QString name, void *data_handle)
      {
          if (value == "" 
             || o->_name.indexOf(value, 0, Qt::CaseInsensitive) >= 0
-            || o->_id.indexOf(value, 0, Qt::CaseInsensitive) >= 0){
+            || o->_id.indexOf(value, 0, Qt::CaseInsensitive) >= 0
+            || o->_keywords.indexOf(value, 0, Qt::CaseInsensitive) >= 0){
                 if (o->_control->isHidden()){
                     o->_control->show();
                 }
