@@ -1382,5 +1382,13 @@
     {
         "id": "IDS_DLG_CURSOR_BAND_SHADE",
         "text": "Bereich zwischen Cursorn einfärben"
+    },
+    {
+        "id": "IDS_DLG_COPY_ANNOTATION",
+        "text": "Annotationstext kopieren"
+    },
+    {
+        "id": "IDS_DLG_COPY_ANNOTATION_WITH_ROW",
+        "text": "Mit Zeilenname kopieren"
     }
 ]

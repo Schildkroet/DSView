@@ -32,6 +32,9 @@
 #include <QDialogButtonBox>
 #include <QScrollArea>
 #include <QApplication>
+#include <algorithm>
+#include <set>
+#include <vector>
 #include "decodetrace.h"
 #include "../sigsession.h"
 #include "../data/decoderstack.h"
@@ -891,30 +894,51 @@ int DecodeTrace::rows_size()
     return size == 0 ? 1 : size;
 }
 
+QString DecodeTrace::channel_index_text()
+{
+    std::vector<int> indexes(_index_list.begin(), _index_list.end());
+    std::sort(indexes.begin(), indexes.end());
+    indexes.erase(std::unique(indexes.begin(), indexes.end()), indexes.end());
+
+    // Runs of consecutive channels as "high-low", highest first.
+    QStringList parts;
+    size_t i = indexes.size();
+    while (i > 0) {
+        const int high = indexes[--i];
+        int low = high;
+        while (i > 0 && indexes[i - 1] == low - 1)
+            low = indexes[--i];
+        if (low == high)
+            parts.append(QString::number(high));
+        else
+            parts.append(QString::number(high) + "-" + QString::number(low));
+    }
+    return parts.join(",");
+}
+
 void DecodeTrace::paint_type_options(QPainter &p, int right, const QPoint pt, QColor fore)
 {
     (void)pt;
 
     int y = get_y();
     const QRectF group_index_rect = get_rect(CHNLREG, y, right);
-    QString index_string;
-    int last_index;
     p.setPen(QPen(fore, 1, Qt::DashLine));
     p.drawLine(group_index_rect.bottomLeft(), group_index_rect.bottomRight());
-    std::list<int>::iterator i = _index_list.begin();
-    last_index = (*i);
-    index_string = QString::number(last_index);
 
-    while (++i != _index_list.end()) {
-        if ((*i) == last_index + 1 && index_string.indexOf("-") < 3 && index_string.indexOf("-") > 0)
-            index_string.replace(QString::number(last_index), QString::number((*i)));
-        else if ((*i) == last_index + 1)
-            index_string = QString::number((*i)) + "-" + index_string;
-        else
-            index_string = QString::number((*i)) + "," + index_string;
-        last_index = (*i);
+    if (_index_list.empty())
+        return;
+
+    // The channels the decoder reads. When the ranges don't fit, the
+    // channel count takes their place rather than running into the name.
+    QString index_string = channel_index_text();
+    const int avail = (int)group_index_rect.width();
+    if (p.fontMetrics().horizontalAdvance(index_string) > avail) {
+        std::set<int> unique(_index_list.begin(), _index_list.end());
+        index_string = QString::number(unique.size()) + " ch";
+        if (p.fontMetrics().horizontalAdvance(index_string) > avail)
+            return;
     }
-    
+
     p.setPen(fore);
     p.drawText(group_index_rect, Qt::AlignRight | Qt::AlignVCenter, index_string);
 }

@@ -153,6 +153,9 @@ public:
      **/
     bool get_annotation_at(const QPoint &pt, QStringList &texts, QString &row_title);
 
+    // The bound channels as compact ranges, highest first, e.g. "31,28-0".
+    QString channel_index_text();
+
 protected:
     void paint_type_options(QPainter &p, int right, const QPoint pt, QColor fore);
 

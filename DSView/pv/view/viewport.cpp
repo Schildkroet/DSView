@@ -42,6 +42,9 @@
 #include <QWheelEvent>
 #include <QScrollBar>
 #include <QToolTip>
+#include <QClipboard>
+#include <QGuiApplication>
+#include <QMenu>
 #include <QHelpEvent>
 
 #include "../config/appconfig.h"
@@ -403,6 +406,38 @@ void Viewport::paintCursorDeltas(QPainter &p, QColor fore, QColor back)
         p.drawText(box, Qt::AlignCenter, text);
     }
     p.restore();
+}
+
+// Right-click on a decoded value: offers to copy its text. Returns true if
+// there was a decoded value at pos.
+bool Viewport::show_annotation_menu(const QPoint &pos)
+{
+    std::vector<Trace*> traces;
+    _view.get_traces(_type, traces);
+
+    for (auto t : traces) {
+        if (t->signal_type() != SR_CHANNEL_DECODER || !t->enabled())
+            continue;
+
+        QStringList texts;
+        QString row_title;
+        if (!((DecodeTrace*)t)->get_annotation_at(pos, texts, row_title))
+            continue;
+
+        QMenu menu(this);
+        QAction *copyAction = menu.addAction(
+            L_S(STR_PAGE_DLG, S_ID(IDS_DLG_COPY_ANNOTATION), "Copy annotation text"));
+        QAction *copyRowAction = menu.addAction(
+            L_S(STR_PAGE_DLG, S_ID(IDS_DLG_COPY_ANNOTATION_WITH_ROW), "Copy with row name"));
+
+        QAction *chosen = menu.exec(QCursor::pos());
+        if (chosen == copyAction)
+            QGuiApplication::clipboard()->setText(texts.front());
+        else if (chosen == copyRowAction)
+            QGuiApplication::clipboard()->setText(row_title + ": " + texts.front());
+        return true;
+    }
+    return false;
 }
 
 void Viewport::paintCursors(QPainter &p)
@@ -1571,7 +1606,15 @@ void Viewport::onLogicMouseRelease(QMouseEvent *event)
         }
         case LOGIC_ZOOM:
         {
-            if (event->pos().x() != _mouse_down_point.x()) {
+            const int drag = abs(event->pos().x() - _mouse_down_point.x());
+            if (drag <= ClickMaxDrag) {
+                // A right click, not a zoom: offer to copy the annotation under the mouse.
+                set_action(NO_ACTION);
+                if (event->button() == Qt::RightButton)
+                    show_annotation_menu(event->pos());
+                break;
+            }
+            {
                 int64_t newOffset = _view.x_offset() + (min(event->pos().x(), _mouse_down_point.x()));
                 const double newScale = max(min(_view.scale() * abs(event->pos().x() - _mouse_down_point.x()) / _view.get_view_width(),
                                                 _view.get_maxscale()), _view.get_minscale());

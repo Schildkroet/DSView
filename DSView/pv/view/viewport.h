@@ -80,6 +80,8 @@ public:
     static const double MinorDragRateUp;
     static const double DragDamping;
     static const int SnapMinSpace = 10;
+    // A right-button drag shorter than this is a click, not a zoom.
+    static const int ClickMaxDrag = 2;
     static const int WaitLoopTime = 400;
     static const int MousePointerClearance = 25;
     static const int MouseEdgeClearance = 3;
@@ -169,6 +171,7 @@ private:
     void paintMeasureBalloon(QPainter &p, QColor fore, QColor back,
                              const std::vector<MeasureRow> &rows);
     void paintCursors(QPainter &p);
+    bool show_annotation_menu(const QPoint &pos);
     void paintCursorBands(QPainter &p);
     void paintCursorDeltas(QPainter &p, QColor fore, QColor back);
     void paint_ref_waves(QPainter &p);

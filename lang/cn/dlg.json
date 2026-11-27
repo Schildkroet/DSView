@@ -934,5 +934,13 @@
     {
         "id": "IDS_DLG_CURSOR_BAND_SHADE",
         "text": "高亮光标之间的区域"
+    },
+    {
+        "id": "IDS_DLG_COPY_ANNOTATION",
+        "text": "复制注释文本"
+    },
+    {
+        "id": "IDS_DLG_COPY_ANNOTATION_WITH_ROW",
+        "text": "连同行名称一起复制"
     }
 ]
