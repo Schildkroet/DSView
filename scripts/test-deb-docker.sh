@@ -146,6 +146,9 @@ echo "DSView ran for 8 seconds"
 echo "--- 4. remove and purge"
 apt-get remove -y -qq "$pkg" || fail "apt-get remove"
 apt-get purge -y -qq "$pkg" || fail "apt-get purge"
+# Step 3 ran DSView, so bash has its path hashed, and `command -v` reports
+# a hashed path even after the file is gone.
+hash -r
 command -v DSView >/dev/null && fail "DSView is still in the PATH after the removal"
 left=""
 for d in /usr/share/DSView /usr/share/libsigrokdecode4DSL /usr/lib/dsview; do
