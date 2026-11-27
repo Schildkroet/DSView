@@ -244,7 +244,7 @@ void Viewport::doPaint()
     int mode = _view.session().get_device()->get_work_mode();
 
     // Under the traces: bands between cursor pairs.
-    if (_type == TIME_VIEW && AppConfig::Instance().appOptions.cursorDeltaBand)
+    if (_type == TIME_VIEW && AppConfig::Instance().appOptions.cursorBandShade)
         paintCursorBands(p);
 
     if (mode == LOGIC || _view.session().is_instant())

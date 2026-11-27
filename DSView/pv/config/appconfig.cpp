@@ -156,6 +156,7 @@ static void _loadApp(AppOptions &o, QSettings &st)
     getFiled("logicLowColor", st, o.logicLowColor, DEFAULT_LOGIC_LOW_COLOR);
     getFiled("showSamplePoints", st, o.showSamplePoints, true);
     getFiled("cursorDeltaBand", st, o.cursorDeltaBand, true);
+    getFiled("cursorBandShade", st, o.cursorBandShade, true);
     getFiled("floatingMeasure", st, o.floatingMeasure, true);
 
 
@@ -239,6 +240,7 @@ static void _saveApp(AppOptions &o, QSettings &st)
     setFiled("logicLowColor", st, o.logicLowColor);
     setFiled("showSamplePoints", st, o.showSamplePoints);
     setFiled("cursorDeltaBand", st, o.cursorDeltaBand);
+    setFiled("cursorBandShade", st, o.cursorBandShade);
     setFiled("floatingMeasure", st, o.floatingMeasure);
 
     QString fmt =  FormatArrayToString(o.m_protocolFormats);

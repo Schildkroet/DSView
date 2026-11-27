@@ -930,5 +930,9 @@
     {
         "id": "IDS_DLG_EXPORT_RANGE_NEED_CURSORS",
         "text": "请先在波形上放置至少两个光标。"
+    },
+    {
+        "id": "IDS_DLG_CURSOR_BAND_SHADE",
+        "text": "高亮光标之间的区域"
     }
 ]

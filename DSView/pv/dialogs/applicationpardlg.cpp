@@ -114,7 +114,9 @@ private:
             return;
         }
 
-        int avail = screen->availableGeometry().height();
+        // Never more than 80% of the free height: a long page scrolls rather
+        // than filling the screen.
+        int avail = screen->availableGeometry().height() * 8 / 10;
         if (!dlg->windowFlags().testFlag(Qt::FramelessWindowHint)){
             // The native title bar is not part of the dialog's height.
             avail -= dlg->style()->pixelMetric(QStyle::PM_TitleBarHeight, NULL, dlg);
@@ -365,6 +367,8 @@ bool ApplicationParamDlg::ShowDlg(QWidget *parent)
     ck_showSamplePoints->setChecked(app.appOptions.showSamplePoints);
     QCheckBox *ck_cursorDeltaBand = new QCheckBox();
     ck_cursorDeltaBand->setChecked(app.appOptions.cursorDeltaBand);
+    QCheckBox *ck_cursorBandShade = new QCheckBox();
+    ck_cursorBandShade->setChecked(app.appOptions.cursorBandShade);
 
     QSpinBox *spinBox_dsoPersistence = new XSpinBox();
     spinBox_dsoPersistence->setRange(0, 10000);
@@ -597,6 +601,8 @@ bool ApplicationParamDlg::ShowDlg(QWidget *parent)
     viewLay->addWidget(ck_showSamplePoints, 0, 1, Qt::AlignRight);
     viewLay->addWidget(new QLabel(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_CURSOR_DELTA_BAND), "Time between cursors (1-2, 3-4, ...)")), 1, 0, Qt::AlignLeft);
     viewLay->addWidget(ck_cursorDeltaBand, 1, 1, Qt::AlignRight);
+    viewLay->addWidget(new QLabel(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_CURSOR_BAND_SHADE), "Shade area between cursors")), 2, 0, Qt::AlignLeft);
+    viewLay->addWidget(ck_cursorBandShade, 2, 1, Qt::AlignRight);
     lay->addWidget(viewGroup);
 
     // The groups scroll when the dialog would not fit on the screen.
@@ -723,6 +729,10 @@ bool ApplicationParamDlg::ShowDlg(QWidget *parent)
         }
         if (app.appOptions.cursorDeltaBand != ck_cursorDeltaBand->isChecked()) {
             app.appOptions.cursorDeltaBand = ck_cursorDeltaBand->isChecked();
+            bAppChanged = true;
+        }
+        if (app.appOptions.cursorBandShade != ck_cursorBandShade->isChecked()) {
+            app.appOptions.cursorBandShade = ck_cursorBandShade->isChecked();
             bAppChanged = true;
         }
         if (bAppChanged){

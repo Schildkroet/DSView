@@ -1382,5 +1382,9 @@
     {
         "id": "IDS_DLG_EXPORT_RANGE_NEED_CURSORS",
         "text": "Place at least two cursors on the waveform to use this."
+    },
+    {
+        "id": "IDS_DLG_CURSOR_BAND_SHADE",
+        "text": "Shade area between cursors"
     }
 ]
