@@ -946,5 +946,557 @@
     {
         "id": "IDS_DLG_TIME_BAR",
         "text": "时间条（整个采集，显示在标尺上方）"
+    },
+    {
+        "id": "IDS_DLG_SRCH_ADD_CONDITION",
+        "text": "添加条件"
+    },
+    {
+        "id": "IDS_DLG_SRCH_ADD_OR",
+        "text": "添加备选项（或）"
+    },
+    {
+        "id": "IDS_DLG_SRCH_ADD_SIGNAL",
+        "text": "添加信号"
+    },
+    {
+        "id": "IDS_DLG_SRCH_AN_EVENT",
+        "text": "一个事件"
+    },
+    {
+        "id": "IDS_DLG_SRCH_A_STATE",
+        "text": "一个状态"
+    },
+    {
+        "id": "IDS_DLG_SRCH_BOUNDARY",
+        "text": "边界事件:"
+    },
+    {
+        "id": "IDS_DLG_SRCH_BUSY",
+        "text": "请先停止采集，再进行搜索。"
+    },
+    {
+        "id": "IDS_DLG_SRCH_BUS_LABEL",
+        "text": "%1（总线，%2 位）"
+    },
+    {
+        "id": "IDS_DLG_SRCH_CANCELLED",
+        "text": "搜索已停止。"
+    },
+    {
+        "id": "IDS_DLG_SRCH_CHANGED",
+        "text": "搜索期间数据发生了变化。"
+    },
+    {
+        "id": "IDS_DLG_SRCH_COL_COUNT",
+        "text": "计数 %1"
+    },
+    {
+        "id": "IDS_DLG_SRCH_COL_DELTA",
+        "text": "Δ %1"
+    },
+    {
+        "id": "IDS_DLG_SRCH_COL_DURATION",
+        "text": "持续时间"
+    },
+    {
+        "id": "IDS_DLG_SRCH_COL_TIME",
+        "text": "时间"
+    },
+    {
+        "id": "IDS_DLG_SRCH_CONDITION",
+        "text": "条件 %1"
+    },
+    {
+        "id": "IDS_DLG_SRCH_CONDITIONS",
+        "text": "条件（须全部满足）"
+    },
+    {
+        "id": "IDS_DLG_SRCH_COUNT",
+        "text": "%1 个匹配"
+    },
+    {
+        "id": "IDS_DLG_SRCH_DURATION_MAX",
+        "text": "且最长"
+    },
+    {
+        "id": "IDS_DLG_SRCH_DURATION_MIN",
+        "text": "持续时间至少"
+    },
+    {
+        "id": "IDS_DLG_SRCH_EDIT",
+        "text": "编辑搜索"
+    },
+    {
+        "id": "IDS_DLG_SRCH_E_BADVALUE",
+        "text": "“%1”不是有效的总线值。"
+    },
+    {
+        "id": "IDS_DLG_SRCH_E_BUS",
+        "text": "没有名为“%1”的并行解码器。"
+    },
+    {
+        "id": "IDS_DLG_SRCH_E_BUSWIDE",
+        "text": "总线 %1 超过 64 位。"
+    },
+    {
+        "id": "IDS_DLG_SRCH_E_CHANNEL",
+        "text": "通道 %1 没有数据。"
+    },
+    {
+        "id": "IDS_DLG_SRCH_E_CHANNELVALUE",
+        "text": "“%1”不是通道值。请使用 0、1、X、R、F 或 C。"
+    },
+    {
+        "id": "IDS_DLG_SRCH_E_CONFLICT",
+        "text": "通道 %1 的值相互矛盾。"
+    },
+    {
+        "id": "IDS_DLG_SRCH_E_COUNT",
+        "text": "“%1”不是有效的次数。"
+    },
+    {
+        "id": "IDS_DLG_SRCH_E_DURATION",
+        "text": "最短持续时间大于最长持续时间。"
+    },
+    {
+        "id": "IDS_DLG_SRCH_E_DURING",
+        "text": "“在匹配期间”需要指定要查找的状态。"
+    },
+    {
+        "id": "IDS_DLG_SRCH_E_EDGECOMPARE",
+        "text": "“%1”: 边沿无法比较。"
+    },
+    {
+        "id": "IDS_DLG_SRCH_E_EDGESTATE",
+        "text": "状态不能包含边沿（R、F、C 或 changes）。"
+    },
+    {
+        "id": "IDS_DLG_SRCH_E_EMPTYPATTERN",
+        "text": "模式中没有信号。"
+    },
+    {
+        "id": "IDS_DLG_SRCH_E_EMPTYVALUE",
+        "text": "缺少 %1 的值。"
+    },
+    {
+        "id": "IDS_DLG_SRCH_E_IN_CONDITION",
+        "text": "条件 %1: %2"
+    },
+    {
+        "id": "IDS_DLG_SRCH_E_MANY",
+        "text": "条件超过 8 个。"
+    },
+    {
+        "id": "IDS_DLG_SRCH_E_NOBOUNDARY",
+        "text": "未指定边界事件。"
+    },
+    {
+        "id": "IDS_DLG_SRCH_E_NOCONDITION",
+        "text": "模式中只有任意值（X）。"
+    },
+    {
+        "id": "IDS_DLG_SRCH_E_NOPATTERN",
+        "text": "未指定要查找的内容。"
+    },
+    {
+        "id": "IDS_DLG_SRCH_E_QUERY",
+        "text": "搜索格式有误。"
+    },
+    {
+        "id": "IDS_DLG_SRCH_E_RANGE",
+        "text": "“%1”: 范围的两端顺序颠倒。"
+    },
+    {
+        "id": "IDS_DLG_SRCH_E_RATE",
+        "text": "时间需要采样率。"
+    },
+    {
+        "id": "IDS_DLG_SRCH_E_TIME",
+        "text": "“%1”不是有效的时间。"
+    },
+    {
+        "id": "IDS_DLG_SRCH_E_TOOWIDE",
+        "text": "“%1”超出总线宽度。"
+    },
+    {
+        "id": "IDS_DLG_SRCH_E_UNIT",
+        "text": "“%1”需要单位: s、ms、us、ns 或 sa（采样点）。"
+    },
+    {
+        "id": "IDS_DLG_SRCH_E_UNMAPPED",
+        "text": "“%1”需要的总线位没有对应的通道。"
+    },
+    {
+        "id": "IDS_DLG_SRCH_E_WINDOW",
+        "text": "时间窗口为空。"
+    },
+    {
+        "id": "IDS_DLG_SRCH_E_XCOMPARE",
+        "text": "“%1”: X 不能用于比较。"
+    },
+    {
+        "id": "IDS_DLG_SRCH_FIND",
+        "text": "查找"
+    },
+    {
+        "id": "IDS_DLG_SRCH_FROM",
+        "text": "从"
+    },
+    {
+        "id": "IDS_DLG_SRCH_HINT_ANY",
+        "text": "任意"
+    },
+    {
+        "id": "IDS_DLG_SRCH_HINT_BUS",
+        "text": "0x21XX, 0b10XR, !=FF, 10..1F, changes"
+    },
+    {
+        "id": "IDS_DLG_SRCH_HINT_CHANNEL",
+        "text": "0、1、X、R、F 或 C"
+    },
+    {
+        "id": "IDS_DLG_SRCH_HINT_TIME",
+        "text": "例如 100ns"
+    },
+    {
+        "id": "IDS_DLG_SRCH_LIMIT",
+        "text": "已在 %1 个匹配后停止。"
+    },
+    {
+        "id": "IDS_DLG_SRCH_LIST",
+        "text": "结果"
+    },
+    {
+        "id": "IDS_DLG_SRCH_MISSING",
+        "text": "%1（缺失）"
+    },
+    {
+        "id": "IDS_DLG_SRCH_NEXT",
+        "text": "下一个匹配"
+    },
+    {
+        "id": "IDS_DLG_SRCH_NONE",
+        "text": "没有匹配"
+    },
+    {
+        "id": "IDS_DLG_SRCH_NONEXT",
+        "text": "光标之后没有匹配。"
+    },
+    {
+        "id": "IDS_DLG_SRCH_NOPREV",
+        "text": "光标之前没有匹配。"
+    },
+    {
+        "id": "IDS_DLG_SRCH_ONE",
+        "text": "1 个匹配"
+    },
+    {
+        "id": "IDS_DLG_SRCH_OR",
+        "text": "或"
+    },
+    {
+        "id": "IDS_DLG_SRCH_POSITION",
+        "text": "第 %1 个，共 %2 个"
+    },
+    {
+        "id": "IDS_DLG_SRCH_PREVIOUS",
+        "text": "上一个匹配"
+    },
+    {
+        "id": "IDS_DLG_SRCH_Q_ATLEAST",
+        "text": "出现至少"
+    },
+    {
+        "id": "IDS_DLG_SRCH_Q_ATMOST",
+        "text": "出现最多"
+    },
+    {
+        "id": "IDS_DLG_SRCH_Q_EXACTLY",
+        "text": "恰好出现"
+    },
+    {
+        "id": "IDS_DLG_SRCH_Q_NEVER",
+        "text": "始终不成立"
+    },
+    {
+        "id": "IDS_DLG_SRCH_Q_NONE",
+        "text": "不出现"
+    },
+    {
+        "id": "IDS_DLG_SRCH_Q_OCCURS",
+        "text": "出现"
+    },
+    {
+        "id": "IDS_DLG_SRCH_Q_SOMETIME",
+        "text": "在某一时刻成立"
+    },
+    {
+        "id": "IDS_DLG_SRCH_Q_THROUGHOUT",
+        "text": "全程成立"
+    },
+    {
+        "id": "IDS_DLG_SRCH_REMOVE_CONDITION",
+        "text": "删除条件"
+    },
+    {
+        "id": "IDS_DLG_SRCH_REMOVE_OR",
+        "text": "删除备选项"
+    },
+    {
+        "id": "IDS_DLG_SRCH_REMOVE_SIGNAL",
+        "text": "删除此信号"
+    },
+    {
+        "id": "IDS_DLG_SRCH_RUN",
+        "text": "搜索"
+    },
+    {
+        "id": "IDS_DLG_SRCH_RUNNING",
+        "text": "正在搜索... %1"
+    },
+    {
+        "id": "IDS_DLG_SRCH_SETUP",
+        "text": "设置搜索..."
+    },
+    {
+        "id": "IDS_DLG_SRCH_STALE",
+        "text": "旧数据"
+    },
+    {
+        "id": "IDS_DLG_SRCH_STATS",
+        "text": "%1: 最小 %2，平均 %3，最大 %4"
+    },
+    {
+        "id": "IDS_DLG_SRCH_STOP",
+        "text": "停止"
+    },
+    {
+        "id": "IDS_DLG_SRCH_SUMMARY_CONDITIONS",
+        "text": "%1 个条件"
+    },
+    {
+        "id": "IDS_DLG_SRCH_SUMMARY_STATE",
+        "text": "状态 %1"
+    },
+    {
+        "id": "IDS_DLG_SRCH_TIMES",
+        "text": "次"
+    },
+    {
+        "id": "IDS_DLG_SRCH_TITLE",
+        "text": "搜索"
+    },
+    {
+        "id": "IDS_DLG_SRCH_TO",
+        "text": "到"
+    },
+    {
+        "id": "IDS_DLG_SRCH_TOOMUCH",
+        "text": "已停止: 某个窗口中的事件过多。请缩小搜索范围。"
+    },
+    {
+        "id": "IDS_DLG_SRCH_W_DURING",
+        "text": "在匹配期间"
+    },
+    {
+        "id": "IDS_DLG_SRCH_W_END",
+        "text": "相对于匹配结束"
+    },
+    {
+        "id": "IDS_DLG_SRCH_W_SINCE",
+        "text": "自上一个边界事件起"
+    },
+    {
+        "id": "IDS_DLG_SRCH_W_START",
+        "text": "相对于匹配开始"
+    },
+    {
+        "id": "IDS_DLG_SRCH_W_UNTIL",
+        "text": "直到下一个边界事件"
+    },
+    {
+        "id": "IDS_DLG_SRCH_HELP_TITLE",
+        "text": "语法"
+    },
+    {
+        "id": "IDS_DLG_SRCH_HELP_CHANNELS",
+        "text": "通道值"
+    },
+    {
+        "id": "IDS_DLG_SRCH_HELP_LEVELS",
+        "text": "低电平、高电平"
+    },
+    {
+        "id": "IDS_DLG_SRCH_HELP_DONTCARE",
+        "text": "任意"
+    },
+    {
+        "id": "IDS_DLG_SRCH_HELP_EDGES",
+        "text": "上升沿、下降沿"
+    },
+    {
+        "id": "IDS_DLG_SRCH_HELP_EITHER",
+        "text": "任一边沿"
+    },
+    {
+        "id": "IDS_DLG_SRCH_HELP_TIMES",
+        "text": "时间"
+    },
+    {
+        "id": "IDS_DLG_SRCH_HELP_UNITS",
+        "text": "s, ms, us, ns, ps"
+    },
+    {
+        "id": "IDS_DLG_SRCH_HELP_NEGATIVE",
+        "text": "匹配之前"
+    },
+    {
+        "id": "IDS_DLG_SRCH_HELP_SAMPLES",
+        "text": "采样点"
+    },
+    {
+        "id": "IDS_DLG_SRCH_HELP_BUSES",
+        "text": "总线值（D0 为最低位）"
+    },
+    {
+        "id": "IDS_DLG_SRCH_HELP_HEX",
+        "text": "十六进制；一个 X 表示四个任意位"
+    },
+    {
+        "id": "IDS_DLG_SRCH_HELP_BINARY",
+        "text": "二进制: 每位为 0、1、X、R、F 或 C"
+    },
+    {
+        "id": "IDS_DLG_SRCH_HELP_NOTEQUAL",
+        "text": "不等于此值"
+    },
+    {
+        "id": "IDS_DLG_SRCH_HELP_COMPARE",
+        "text": "与该值比较"
+    },
+    {
+        "id": "IDS_DLG_SRCH_HELP_RANGE",
+        "text": "范围，包含两端"
+    },
+    {
+        "id": "IDS_DLG_SRCH_HELP_CHANGES",
+        "text": "任意位发生变化"
+    },
+    {
+        "id": "IDS_DLG_SRCH_HELP_MATCHING",
+        "text": "模式如何匹配"
+    },
+    {
+        "id": "IDS_DLG_SRCH_HELP_MATCH_LEVELS",
+        "text": "仅含电平时，在电平变为成立之处匹配。"
+    },
+    {
+        "id": "IDS_DLG_SRCH_HELP_MATCH_EDGES",
+        "text": "含边沿时，模式在其边沿发生、且电平保持成立之处匹配。"
+    },
+    {
+        "id": "IDS_DLG_SRCH_HELP_MATCH_WINDOWS",
+        "text": "时间窗口包含两端。从 1sa 开始可排除匹配本身。"
+    },
+    {
+        "id": "IDS_DLG_ABSOLUTE",
+        "text": "绝对值"
+    },
+    {
+        "id": "IDS_DLG_CH_DELAY",
+        "text": "延迟（上升）"
+    },
+    {
+        "id": "IDS_DLG_CH_MEASURE",
+        "text": "通道间测量"
+    },
+    {
+        "id": "IDS_DLG_CH_NEED_DIFF",
+        "text": "请选择两个不同的通道。"
+    },
+    {
+        "id": "IDS_DLG_CH_NEED_TWO",
+        "text": "请选择两个 DSO 通道。"
+    },
+    {
+        "id": "IDS_DLG_CH_PHASE",
+        "text": "相位"
+    },
+    {
+        "id": "IDS_DLG_CH_SKEW",
+        "text": "偏斜（下降）"
+    },
+    {
+        "id": "IDS_DLG_DIFFERENTIATE",
+        "text": "微分"
+    },
+    {
+        "id": "IDS_DLG_FILTER_WIDTH",
+        "text": "滤波窗口（采样点）"
+    },
+    {
+        "id": "IDS_DLG_HIGHPASS",
+        "text": "高通"
+    },
+    {
+        "id": "IDS_DLG_HISTOGRAM",
+        "text": "直方图 / 抖动"
+    },
+    {
+        "id": "IDS_DLG_HIST_NO_CHANNEL",
+        "text": "未选择已启用的 DSO 通道。"
+    },
+    {
+        "id": "IDS_DLG_HIST_NO_DATA",
+        "text": "没有采集到的数据。请先进行一次采集。"
+    },
+    {
+        "id": "IDS_DLG_HIST_NO_JITTER",
+        "text": "边沿数量不足，无法进行抖动分析。"
+    },
+    {
+        "id": "IDS_DLG_HIST_PERIOD",
+        "text": "周期分布（抖动）"
+    },
+    {
+        "id": "IDS_DLG_HIST_VALUE",
+        "text": "数值分布"
+    },
+    {
+        "id": "IDS_DLG_INTEGRATE",
+        "text": "积分"
+    },
+    {
+        "id": "IDS_DLG_LOWPASS",
+        "text": "低通"
+    },
+    {
+        "id": "IDS_DLG_REF_CLEAR",
+        "text": "全部清除"
+    },
+    {
+        "id": "IDS_DLG_REF_OPTIONS",
+        "text": "参考波形"
+    },
+    {
+        "id": "IDS_DLG_REF_SAVE",
+        "text": "保存参考"
+    },
+    {
+        "id": "IDS_DLG_REF_STORED",
+        "text": "已保存的参考"
+    },
+    {
+        "id": "IDS_DLG_SQRT",
+        "text": "平方根"
+    },
+    {
+        "id": "IDS_DLG_SQUARE",
+        "text": "平方"
+    },
+    {
+        "id": "IDS_DLG_UNIT",
+        "text": "单位"
     }
 ]

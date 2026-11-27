@@ -386,5 +386,21 @@
     {
         "id": "IDS_MSG_NO_DECODED_RESULT",
         "text": "Keine Daten zum Exportieren!"
+    },
+    {
+        "id": "IDS_MSG_DRIVER_HINT_LINUX",
+        "text": "DreamSourceLab-Hardware benötigt eine udev-Regel, die den USB-Zugriff erlaubt. Sie wurde auf diesem System nicht gefunden. Legen Sie /etc/udev/rules.d/60-dreamsourcelab.rules mit der folgenden Zeile an und führen Sie dann 'sudo udevadm control --reload-rules' aus:\n\nSUBSYSTEM==\"usb\", ATTRS{idVendor}==\"2a0e\", MODE=\"0666\""
+    },
+    {
+        "id": "IDS_MSG_DRIVER_HINT_LINUX_BUNDLED",
+        "text": "DreamSourceLab-Hardware benötigt eine udev-Regel, die den USB-Zugriff erlaubt. Sie wurde auf diesem System nicht gefunden (das ist normal, wenn das AppImage läuft). Zum Installieren führen Sie aus:\n\nsudo cp \"%1\" /etc/udev/rules.d/ && sudo udevadm control --reload-rules"
+    },
+    {
+        "id": "IDS_MSG_DRIVER_HINT_TITLE",
+        "text": "Hinweis zum Hardwaretreiber"
+    },
+    {
+        "id": "IDS_MSG_DRIVER_HINT_WIN",
+        "text": "DreamSourceLab-Hardware benötigt einen WinUSB-Treiber, damit Windows sie erkennt. Erscheint Ihr Gerät nicht in der Geräteliste, installieren Sie einen WinUSB-Treiber dafür (zum Beispiel mit dem kostenlosen Tool „Zadig“) und schließen Sie das Gerät danach erneut an."
     }
 ]

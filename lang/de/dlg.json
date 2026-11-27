@@ -1394,5 +1394,105 @@
     {
         "id": "IDS_DLG_TIME_BAR",
         "text": "Zeitleiste (ganze Aufnahme, über dem Lineal)"
+    },
+    {
+        "id": "IDS_DLG_ABSOLUTE",
+        "text": "Betrag"
+    },
+    {
+        "id": "IDS_DLG_CH_DELAY",
+        "text": "Verzögerung (steigend)"
+    },
+    {
+        "id": "IDS_DLG_CH_MEASURE",
+        "text": "Kanal-zu-Kanal-Messung"
+    },
+    {
+        "id": "IDS_DLG_CH_NEED_DIFF",
+        "text": "Wählen Sie zwei verschiedene Kanäle aus."
+    },
+    {
+        "id": "IDS_DLG_CH_NEED_TWO",
+        "text": "Wählen Sie zwei DSO-Kanäle aus."
+    },
+    {
+        "id": "IDS_DLG_CH_PHASE",
+        "text": "Phase"
+    },
+    {
+        "id": "IDS_DLG_CH_SKEW",
+        "text": "Versatz (fallend)"
+    },
+    {
+        "id": "IDS_DLG_DIFFERENTIATE",
+        "text": "Differenzieren"
+    },
+    {
+        "id": "IDS_DLG_FILTER_WIDTH",
+        "text": "Filterfenster (Samples)"
+    },
+    {
+        "id": "IDS_DLG_HIGHPASS",
+        "text": "Hochpass"
+    },
+    {
+        "id": "IDS_DLG_HISTOGRAM",
+        "text": "Histogramm / Jitter"
+    },
+    {
+        "id": "IDS_DLG_HIST_NO_CHANNEL",
+        "text": "Kein aktivierter DSO-Kanal ausgewählt."
+    },
+    {
+        "id": "IDS_DLG_HIST_NO_DATA",
+        "text": "Keine aufgezeichneten Daten. Starten Sie zuerst eine Aufzeichnung."
+    },
+    {
+        "id": "IDS_DLG_HIST_NO_JITTER",
+        "text": "Zu wenige Flanken für eine Jitter-Analyse."
+    },
+    {
+        "id": "IDS_DLG_HIST_PERIOD",
+        "text": "Periodenverteilung (Jitter)"
+    },
+    {
+        "id": "IDS_DLG_HIST_VALUE",
+        "text": "Werteverteilung"
+    },
+    {
+        "id": "IDS_DLG_INTEGRATE",
+        "text": "Integrieren"
+    },
+    {
+        "id": "IDS_DLG_LOWPASS",
+        "text": "Tiefpass"
+    },
+    {
+        "id": "IDS_DLG_REF_CLEAR",
+        "text": "Alle löschen"
+    },
+    {
+        "id": "IDS_DLG_REF_OPTIONS",
+        "text": "Referenzkurven"
+    },
+    {
+        "id": "IDS_DLG_REF_SAVE",
+        "text": "Referenz speichern"
+    },
+    {
+        "id": "IDS_DLG_REF_STORED",
+        "text": "Gespeicherte Referenzen"
+    },
+    {
+        "id": "IDS_DLG_SQRT",
+        "text": "Wurzel"
+    },
+    {
+        "id": "IDS_DLG_SQUARE",
+        "text": "Quadrat"
+    },
+    {
+        "id": "IDS_DLG_UNIT",
+        "text": "Einheit"
     }
 ]

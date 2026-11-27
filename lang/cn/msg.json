@@ -393,5 +393,21 @@
     {
         "id": "IDS_MSG_NO_DECODED_RESULT",
         "text": "无可导出的数据!"
+    },
+    {
+        "id": "IDS_MSG_DRIVER_HINT_LINUX",
+        "text": "DreamSourceLab 硬件需要一条授予 USB 访问权限的 udev 规则，但在此系统上未找到。请使用以下内容创建 /etc/udev/rules.d/60-dreamsourcelab.rules，然后运行 'sudo udevadm control --reload-rules'：\n\nSUBSYSTEM==\"usb\", ATTRS{idVendor}==\"2a0e\", MODE=\"0666\""
+    },
+    {
+        "id": "IDS_MSG_DRIVER_HINT_LINUX_BUNDLED",
+        "text": "DreamSourceLab 硬件需要一条授予 USB 访问权限的 udev 规则，但在此系统上未找到（运行 AppImage 时这是正常的）。要安装它，请运行：\n\nsudo cp \"%1\" /etc/udev/rules.d/ && sudo udevadm control --reload-rules"
+    },
+    {
+        "id": "IDS_MSG_DRIVER_HINT_TITLE",
+        "text": "硬件驱动说明"
+    },
+    {
+        "id": "IDS_MSG_DRIVER_HINT_WIN",
+        "text": "DreamSourceLab 硬件需要 WinUSB 驱动才能被 Windows 识别。如果您的设备没有出现在设备列表中，请为其安装 WinUSB 驱动（例如使用免费的“Zadig”工具），然后重新连接设备。"
     }
 ]

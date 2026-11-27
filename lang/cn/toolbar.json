@@ -198,5 +198,17 @@
     {
         "id": "IDS_TOOLBAR_DSO_SPLIT",
         "text": "分屏"
+    },
+    {
+        "id": "IDS_TOOLBAR_FUNCTION_CHMEASURE",
+        "text": "通道间测量"
+    },
+    {
+        "id": "IDS_TOOLBAR_FUNCTION_HISTOGRAM",
+        "text": "直方图"
+    },
+    {
+        "id": "IDS_TOOLBAR_FUNCTION_REFERENCE",
+        "text": "参考"
     }
 ]

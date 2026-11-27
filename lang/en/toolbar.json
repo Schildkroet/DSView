@@ -198,6 +198,18 @@
     {
         "id": "IDS_TOOLBAR_DSO_SPLIT",
         "text": "Split"
+    },
+    {
+        "id": "IDS_TOOLBAR_FUNCTION_CHMEASURE",
+        "text": "Ch-Ch Measure"
+    },
+    {
+        "id": "IDS_TOOLBAR_FUNCTION_HISTOGRAM",
+        "text": "Histogram"
+    },
+    {
+        "id": "IDS_TOOLBAR_FUNCTION_REFERENCE",
+        "text": "Reference"
     }
 
 

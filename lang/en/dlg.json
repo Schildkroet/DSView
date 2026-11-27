@@ -1398,5 +1398,105 @@
     {
         "id": "IDS_DLG_TIME_BAR",
         "text": "Time bar (whole capture, above the ruler)"
+    },
+    {
+        "id": "IDS_DLG_ABSOLUTE",
+        "text": "Absolute"
+    },
+    {
+        "id": "IDS_DLG_CH_DELAY",
+        "text": "Delay (rise)"
+    },
+    {
+        "id": "IDS_DLG_CH_MEASURE",
+        "text": "Channel-to-channel measure"
+    },
+    {
+        "id": "IDS_DLG_CH_NEED_DIFF",
+        "text": "Select two different channels."
+    },
+    {
+        "id": "IDS_DLG_CH_NEED_TWO",
+        "text": "Select two DSO channels."
+    },
+    {
+        "id": "IDS_DLG_CH_PHASE",
+        "text": "Phase"
+    },
+    {
+        "id": "IDS_DLG_CH_SKEW",
+        "text": "Skew (fall)"
+    },
+    {
+        "id": "IDS_DLG_DIFFERENTIATE",
+        "text": "Differentiate"
+    },
+    {
+        "id": "IDS_DLG_FILTER_WIDTH",
+        "text": "Filter window (samples)"
+    },
+    {
+        "id": "IDS_DLG_HIGHPASS",
+        "text": "High pass"
+    },
+    {
+        "id": "IDS_DLG_HISTOGRAM",
+        "text": "Histogram / Jitter"
+    },
+    {
+        "id": "IDS_DLG_HIST_NO_CHANNEL",
+        "text": "No enabled DSO channel selected."
+    },
+    {
+        "id": "IDS_DLG_HIST_NO_DATA",
+        "text": "No captured data. Run an acquisition first."
+    },
+    {
+        "id": "IDS_DLG_HIST_NO_JITTER",
+        "text": "Not enough edges for jitter analysis."
+    },
+    {
+        "id": "IDS_DLG_HIST_PERIOD",
+        "text": "Period distribution (jitter)"
+    },
+    {
+        "id": "IDS_DLG_HIST_VALUE",
+        "text": "Value distribution"
+    },
+    {
+        "id": "IDS_DLG_INTEGRATE",
+        "text": "Integrate"
+    },
+    {
+        "id": "IDS_DLG_LOWPASS",
+        "text": "Low pass"
+    },
+    {
+        "id": "IDS_DLG_REF_CLEAR",
+        "text": "Clear all"
+    },
+    {
+        "id": "IDS_DLG_REF_OPTIONS",
+        "text": "Reference Waveforms"
+    },
+    {
+        "id": "IDS_DLG_REF_SAVE",
+        "text": "Save reference"
+    },
+    {
+        "id": "IDS_DLG_REF_STORED",
+        "text": "Stored references"
+    },
+    {
+        "id": "IDS_DLG_SQRT",
+        "text": "Sqrt"
+    },
+    {
+        "id": "IDS_DLG_SQUARE",
+        "text": "Square"
+    },
+    {
+        "id": "IDS_DLG_UNIT",
+        "text": "Unit"
     }
 ]

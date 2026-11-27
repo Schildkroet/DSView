@@ -394,5 +394,21 @@
     {
         "id": "IDS_MSG_NO_DECODED_RESULT",
         "text": "No data to export!"
+    },
+    {
+        "id": "IDS_MSG_DRIVER_HINT_LINUX",
+        "text": "DreamSourceLab hardware needs a udev rule granting USB access, which was not found on this system. Create /etc/udev/rules.d/60-dreamsourcelab.rules with the following line, then run 'sudo udevadm control --reload-rules':\n\nSUBSYSTEM==\"usb\", ATTRS{idVendor}==\"2a0e\", MODE=\"0666\""
+    },
+    {
+        "id": "IDS_MSG_DRIVER_HINT_LINUX_BUNDLED",
+        "text": "DreamSourceLab hardware needs a udev rule granting USB access, which was not found on this system (this is normal when running the AppImage). To install it, run:\n\nsudo cp \"%1\" /etc/udev/rules.d/ && sudo udevadm control --reload-rules"
+    },
+    {
+        "id": "IDS_MSG_DRIVER_HINT_TITLE",
+        "text": "Hardware driver note"
+    },
+    {
+        "id": "IDS_MSG_DRIVER_HINT_WIN",
+        "text": "DreamSourceLab hardware needs a WinUSB driver to be recognized by Windows. If your device does not appear in the device list, install a WinUSB driver for it (for example with the free 'Zadig' tool), then reconnect the device."
     }
 ]
