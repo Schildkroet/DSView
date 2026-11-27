@@ -64,7 +64,16 @@ MeasureDock::MeasureDock(QWidget *parent, View &view, SigSession *session) :
 
     _mouse_groupBox = new QGroupBox(_widget);
     _fen_checkBox = new QCheckBox(_widget);
-    _fen_checkBox->setChecked(true);
+    // Remembered between sessions.
+    _fen_checkBox->setChecked(AppConfig::Instance().appOptions.floatingMeasure);
+    connect(_fen_checkBox, &QCheckBox::stateChanged, this, [](int state) {
+        AppConfig &app = AppConfig::Instance();
+        if (app.appOptions.floatingMeasure != (state != 0)) {
+            app.appOptions.floatingMeasure = (state != 0);
+            app.SaveApp();
+        }
+    });
+    _view.set_measure_en(_fen_checkBox->isChecked());
     _width_time_label = new QLabel(_widget);
     _width_samples_label = new QLabel(_widget);
     _period_time_label = new QLabel(_widget);

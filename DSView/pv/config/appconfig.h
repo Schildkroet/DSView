@@ -106,6 +106,8 @@ struct AppOptions
     QColor logicHighColor;    // HIGH segment colour (colorLogicHigh)
     QColor logicLowColor;     // LOW segment colour (colorLogicLow)
     bool  showSamplePoints;   // Mark each sample with a dot when zoomed in
+    bool  cursorDeltaBand;    // Shade cursor pairs (1-2, 3-4, ...) and show the time between them
+    bool  floatingMeasure;    // Measure panel: "Enable floating measurement" (brackets and values at the mouse)
     std::vector<StringPair> m_protocolFormats;
 };
  

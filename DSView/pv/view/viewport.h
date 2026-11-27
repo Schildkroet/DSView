@@ -155,7 +155,22 @@ private:
     void paintSignals(QPainter& p, QColor fore, QColor back);
     void paintProgress(QPainter& p, QColor fore, QColor back);
     void paintMeasure(QPainter &p, QColor fore, QColor back);
+
+    // One line of a measurement balloon: label, value, and an optional
+    // dimmed third column (a sample count).
+    struct MeasureRow {
+        QString label;
+        QString value;
+        QString extra;
+        QColor  colour;
+    };
+    // The floating measurement's balloon beside the mouse, shared by the
+    // manual measurements (edge count, edge to edge) so they all look alike.
+    void paintMeasureBalloon(QPainter &p, QColor fore, QColor back,
+                             const std::vector<MeasureRow> &rows);
     void paintCursors(QPainter &p);
+    void paintCursorBands(QPainter &p);
+    void paintCursorDeltas(QPainter &p, QColor fore, QColor back);
     void paint_ref_waves(QPainter &p);
     void paintYScaleBadge(QPainter &p, QColor fore, QColor back);
 
@@ -242,9 +257,7 @@ private:
     uint64_t    _edge_falling;
     uint64_t    _edge_start;
     uint64_t    _edge_end;
-    QString     _em_rising;
-    QString     _em_falling;
-    QString     _em_edges;
+
 
     QTimer      _trigger_timer;
     bool        _is_checked_trig;
