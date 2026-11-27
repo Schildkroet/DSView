@@ -942,5 +942,9 @@
     {
         "id": "IDS_DLG_COPY_ANNOTATION_WITH_ROW",
         "text": "连同行名称一起复制"
+    },
+    {
+        "id": "IDS_DLG_TIME_BAR",
+        "text": "时间条（整个采集，显示在标尺上方）"
     }
 ]

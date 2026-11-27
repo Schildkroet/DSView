@@ -158,6 +158,7 @@ static void _loadApp(AppOptions &o, QSettings &st)
     getFiled("cursorDeltaBand", st, o.cursorDeltaBand, true);
     getFiled("cursorBandShade", st, o.cursorBandShade, true);
     getFiled("floatingMeasure", st, o.floatingMeasure, true);
+    getFiled("timeBar", st, o.showTimeBar, true);
 
 
     QString fmt;
@@ -242,6 +243,7 @@ static void _saveApp(AppOptions &o, QSettings &st)
     setFiled("cursorDeltaBand", st, o.cursorDeltaBand);
     setFiled("cursorBandShade", st, o.cursorBandShade);
     setFiled("floatingMeasure", st, o.floatingMeasure);
+    setFiled("timeBar", st, o.showTimeBar);
 
     QString fmt =  FormatArrayToString(o.m_protocolFormats);
     setFiled("protocalFormats", st, fmt);

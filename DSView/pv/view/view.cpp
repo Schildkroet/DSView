@@ -36,6 +36,7 @@
 #include "header.h"
 #include "devmode.h"
 #include "ruler.h"
+#include "timebar.h"
 #include "signal.h"
 #include "dsosignal.h"
 #include "view.h"
@@ -139,10 +140,11 @@ View::View(SigSession *session, pv::toolbars::SamplingBar *sampling_bar, QWidget
 
     _active_viewport = NULL;
     _ruler = new Ruler(*this);
+    _timebar = new TimeBar(*this);
     _header = new Header(*this);
     _devmode = new DevMode(this, session);
 
-    setViewportMargins(headerWidth(), RulerHeight, 0, get_bottom_margin());
+    setViewportMargins(headerWidth(), get_top_margin(), 0, get_bottom_margin());
 
     // windows splitter
     _time_viewport = new Viewport(*this, TIME_VIEW);
@@ -199,6 +201,7 @@ View::View(SigSession *session, pv::toolbars::SamplingBar *sampling_bar, QWidget
     //tr
     _viewcenter->setObjectName("ViewArea_center");
     _ruler->setObjectName("ViewArea_ruler");
+    _timebar->setObjectName("ViewArea_timebar");
     _header->setObjectName("ViewArea_header");
 
     QColor fore(QWidget::palette().color(QWidget::foregroundRole()));
@@ -230,6 +233,11 @@ View::View(SigSession *session, pv::toolbars::SamplingBar *sampling_bar, QWidget
 
     connect(_header, SIGNAL(traces_moved()),this, SLOT(on_traces_moved()));
     connect(_header, SIGNAL(header_updated()),this, SLOT(header_updated()));
+
+    // The time bar marks the cursors.
+    connect(this, SIGNAL(cursor_update()), _timebar, SLOT(update()));
+    connect(this, SIGNAL(cursor_moving()), _timebar, SLOT(update()));
+    connect(this, SIGNAL(cursor_moved()), _timebar, SLOT(update()));
 
     ADD_UI(this);
 }
@@ -1160,7 +1168,7 @@ int View::headerWidth()
         }
     }
 
-    setViewportMargins(headerWidth, RulerHeight, 0, get_bottom_margin());
+    setViewportMargins(headerWidth, get_top_margin(), 0, get_bottom_margin());
 
     return headerWidth;
 }
@@ -1174,7 +1182,7 @@ void View::resizeEvent(QResizeEvent*)
     }
 
     reconstruct();
-    setViewportMargins(headerWidth(), RulerHeight, 0, get_bottom_margin());
+    setViewportMargins(headerWidth(), get_top_margin(), 0, get_bottom_margin());
     update_margins();
     // No update_scroll() here: it would clamp the scroll position against
     // the new pane height with the old trace heights. signals_changed()
@@ -1336,7 +1344,7 @@ void View::v_scroll_value_changed(int value)
 
 void View::data_updated()
 {
-    setViewportMargins(headerWidth(), RulerHeight, 0, get_bottom_margin());
+    setViewportMargins(headerWidth(), get_top_margin(), 0, get_bottom_margin());
     update_margins();
 
 	// Update the scroll bars
@@ -1353,13 +1361,38 @@ void View::data_updated()
     _ruler->update();
 }
 
+// Showing or hiding the time bar (mode switch, display options) changes the
+// top margin the next time headerWidth() sets the margins, at the end of
+// signals_changed(). The trace pane is resized then, and resizeEvent() lays
+// the rows out again for its new height. Setting the margins any earlier
+// would run that before new traces have a viewport (a DSO trace asserts).
+int View::get_top_margin()
+{
+    return RulerHeight + (timebar_shown() ? TimeBar::BarHeight : 0);
+}
+
+bool View::timebar_shown()
+{
+    return _timebar != nullptr
+        && AppConfig::Instance().appOptions.showTimeBar
+        && _device_agent != nullptr
+        && _device_agent->have_instance()
+        && _device_agent->get_work_mode() == LOGIC;
+}
+
 void View::update_margins()
 {
     int width = get_view_width();
 
     if (width > 0)
     {
-        _ruler->setGeometry(_viewcenter->x(), 0,  width, _viewcenter->y());
+        // The time bar, when shown, sits above the ruler; the corner on the
+        // left (DevMode) spans both.
+        const int bar = timebar_shown() ? TimeBar::BarHeight : 0;
+        _timebar->setVisible(bar > 0);
+        if (bar > 0)
+            _timebar->setGeometry(_viewcenter->x(), 0, width, bar);
+        _ruler->setGeometry(_viewcenter->x(), bar,  width, _viewcenter->y() - bar);
         _header->setGeometry(0, _viewcenter->y(), _viewcenter->x(), _viewcenter->height());
         _devmode->setGeometry(0, 0, _viewcenter->x(), _viewcenter->y());
     }
@@ -1761,6 +1794,8 @@ void View::show_region(uint64_t start, uint64_t end, bool keep)
 void View::viewport_update()
 {
     _viewcenter->update();
+    if (_timebar)
+        _timebar->update();
     for(QWidget *viewport : _viewport_list)
         viewport->update();
 }
@@ -1876,6 +1911,10 @@ void View::set_receive_len(uint64_t len)
 {
     if (_time_viewport)
         _time_viewport->set_receive_len(len);
+
+    // The received part of the capture grows on the time bar.
+    if (_timebar)
+        _timebar->update();
 
     if (_fft_viewport && _session->get_device()->get_work_mode() == DSO)
         _fft_viewport->set_receive_len(len);

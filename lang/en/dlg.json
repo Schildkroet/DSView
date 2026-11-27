@@ -1394,5 +1394,9 @@
     {
         "id": "IDS_DLG_COPY_ANNOTATION_WITH_ROW",
         "text": "Copy with row name"
+    },
+    {
+        "id": "IDS_DLG_TIME_BAR",
+        "text": "Time bar (whole capture, above the ruler)"
     }
 ]

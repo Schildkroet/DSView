@@ -109,6 +109,7 @@ struct AppOptions
     bool  cursorDeltaBand;    // Show the time between cursor pairs (1-2, 3-4, ...)
     bool  cursorBandShade;    // Shade the area between cursor pairs
     bool  floatingMeasure;    // Measure panel: "Enable floating measurement" (brackets and values at the mouse)
+    bool  showTimeBar;        // Logic: thin bar above the ruler standing for the whole capture
     std::vector<StringPair> m_protocolFormats;
 };
  

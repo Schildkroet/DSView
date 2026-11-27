@@ -280,6 +280,9 @@ bool ApplicationParamDlg::ShowDlg(QWidget *parent)
     QCheckBox *ck_channelDivider = new QCheckBox();
     ck_channelDivider->setChecked(app.appOptions.logicChannelDivider);
 
+    QCheckBox *ck_timeBar = new QCheckBox();
+    ck_timeBar->setChecked(app.appOptions.showTimeBar);
+
     QCheckBox *ck_snapVScroll = new QCheckBox();
     ck_snapVScroll->setChecked(app.appOptions.logicSnapVScroll);
 
@@ -500,16 +503,19 @@ bool ApplicationParamDlg::ShowDlg(QWidget *parent)
     logicLay->addWidget(ck_channelDivider, 7, 1, Qt::AlignRight);
 
     // Add sliders to logic layout
-    logicLay->addWidget(new QLabel(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_DECODER_DYNAMIC_FONT_WIDTH), "Decoder adaptive font width")), 8, 0, Qt::AlignLeft);
-    logicLay->addWidget(ck_decoderDynamicFontWidth, 8, 1, Qt::AlignRight);
-    logicLay->addWidget(label_minFontWidth, 9, 0, Qt::AlignLeft);
-    logicLay->addWidget(spinBox_minFontWidth, 9, 1, Qt::AlignRight);
-    logicLay->addWidget(slider_minFontWidth, 10, 0, Qt::AlignJustify);
-    logicLay->addWidget(label_minSample, 10, 1, Qt::AlignCenter);
-    logicLay->addWidget(label_maxFontWidth, 11, 0, Qt::AlignLeft);
-    logicLay->addWidget(spinBox_maxFontWidth, 11, 1, Qt::AlignRight);
-    logicLay->addWidget(slider_maxFontWidth, 12, 0, Qt::AlignJustify);
-    logicLay->addWidget(label_maxSample, 12, 1, Qt::AlignCenter);
+    logicLay->addWidget(new QLabel(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_TIME_BAR), "Time bar (whole capture, above the ruler)")), 8, 0, Qt::AlignLeft);
+    logicLay->addWidget(ck_timeBar, 8, 1, Qt::AlignRight);
+
+    logicLay->addWidget(new QLabel(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_DECODER_DYNAMIC_FONT_WIDTH), "Decoder adaptive font width")), 9, 0, Qt::AlignLeft);
+    logicLay->addWidget(ck_decoderDynamicFontWidth, 9, 1, Qt::AlignRight);
+    logicLay->addWidget(label_minFontWidth, 10, 0, Qt::AlignLeft);
+    logicLay->addWidget(spinBox_minFontWidth, 10, 1, Qt::AlignRight);
+    logicLay->addWidget(slider_minFontWidth, 11, 0, Qt::AlignJustify);
+    logicLay->addWidget(label_minSample, 11, 1, Qt::AlignCenter);
+    logicLay->addWidget(label_maxFontWidth, 12, 0, Qt::AlignLeft);
+    logicLay->addWidget(spinBox_maxFontWidth, 12, 1, Qt::AlignRight);
+    logicLay->addWidget(slider_maxFontWidth, 13, 0, Qt::AlignJustify);
+    logicLay->addWidget(label_maxSample, 13, 1, Qt::AlignCenter);
     logicLay->setColumnMinimumWidth(1, wfm.horizontalAdvance("Example")
         + logicLay->contentsMargins().left()
         + logicLay->contentsMargins().right()
@@ -701,6 +707,10 @@ bool ApplicationParamDlg::ShowDlg(QWidget *parent)
         }
         if (app.appOptions.logicChannelDivider != ck_channelDivider->isChecked()) {
             app.appOptions.logicChannelDivider = ck_channelDivider->isChecked();
+            bAppChanged = true;
+        }
+        if (app.appOptions.showTimeBar != ck_timeBar->isChecked()) {
+            app.appOptions.showTimeBar = ck_timeBar->isChecked();
             bAppChanged = true;
         }
         if (app.appOptions.logicSnapVScroll != ck_snapVScroll->isChecked()) {
