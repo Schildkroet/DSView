@@ -2264,12 +2264,16 @@ void Viewport::paintMeasureBalloon(QPainter &p, QColor fore, QColor back,
     hover_x = std::max(0.0, std::min(hover_x, width - typical_width));
     hover_y = std::max(0.0, std::min(hover_y, height - box_h));
 
-    p.setPen(Qt::NoPen);
-    p.setBrush(back.black() > 0x80 ? View::TransparentLightBlue : View::TransparentLightYellow);
-    p.drawRect(QRectF(hover_x, hover_y, (double)typical_width, box_h));
-
-    QColor line_colour(fore);
-    line_colour.setAlpha(90);
+    // Solid: the background colour with a little of the text colour in it,
+    // so the box stands out from the view behind it. An outline and the
+    // lines between the measurements use the text colour.
+    QColor solid((back.red() * 85 + fore.red() * 15) / 100,
+                 (back.green() * 85 + fore.green() * 15) / 100,
+                 (back.blue() * 85 + fore.blue() * 15) / 100);
+    QColor line_colour(fore.red(), fore.green(), fore.blue(), 170);
+    p.setPen(QPen(line_colour, 1));
+    p.setBrush(solid);
+    p.drawRect(QRectF(hover_x + 0.5, hover_y + 0.5, (double)typical_width - 1, box_h - 1));
     const double tw = (double)typical_width - 2 * pad;
     double y = hover_y + pad;
 
