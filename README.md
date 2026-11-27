@@ -2,6 +2,11 @@
 
 # DSView
 
+[![CI](https://github.com/Schildkroet/DSView/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/Schildkroet/DSView/actions/workflows/build.yml?query=branch%3Amaster)
+[![Latest release](https://img.shields.io/github/v/release/Schildkroet/DSView?label=release)](https://github.com/Schildkroet/DSView/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/Schildkroet/DSView/total?label=downloads)](https://github.com/Schildkroet/DSView/releases)
+[![License](https://img.shields.io/github/license/Schildkroet/DSView)](COPYING)
+
 DSView is a GUI program for supporting various instruments from [DreamSourceLab](http://www.dreamsourcelab.com), including logic analyzers, oscilloscopes, etc. DSView is based on the [sigrok project](https://sigrok.org).
 
 The sigrok project aims at creating a portable, cross-platform, Free/Libre/Open-Source signal analysis software suite that supports various device types (such as logic analyzers, oscilloscopes, multimeters, and more).
