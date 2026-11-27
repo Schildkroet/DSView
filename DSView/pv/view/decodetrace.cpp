@@ -267,32 +267,6 @@ void DecodeTrace::paint_back(QPainter &p, int left, int right, QColor fore, QCol
     };
     p.drawPolygon(start_points, countof(start_points));
     p.drawPolygon(end_points, countof(end_points));
-
-    // --draw headings
-    const int row_height = _view->get_signalHeight();
-    for (size_t i = 0; i < _cur_row_headings.size(); i++)
-    {
-        const int y = i * row_height + get_y() - _totalHeight * 0.5;
-
-        p.setPen(QPen(Qt::NoPen));
-        p.setBrush(QApplication::palette().brush(QPalette::WindowText));
-
-        const QRect r(left + ArrowSize * 2, y,
-            right - left, row_height / 2);
-        const QString h(_cur_row_headings[i]);
-        const int f = Qt::AlignLeft | Qt::AlignVCenter |
-            Qt::TextDontClip;
-        const QPointF points[] = {
-            QPointF(left, r.center().y() - ArrowSize),
-            QPointF(left + ArrowSize, r.center().y()),
-            QPointF(left, r.center().y() + ArrowSize)
-        };
-        p.drawPolygon(points, countof(points));
-
-        // Draw the text
-        p.setPen(fore);
-        p.drawText(r, f, h);
-    }
 }
 
 void DecodeTrace::paint_mid(QPainter &p, int left, int right, QColor fore, QColor back)
@@ -521,11 +495,45 @@ void DecodeTrace::paint_fore(QPainter &p, int left, int right, QColor fore, QCol
 {
 	using namespace pv::data::decode;
 
-    (void)p;
-    (void)left;
-	(void)right;
-    (void)fore;
-    (void)back;
+    // Row headings go on top of the decoded data (they used to be drawn
+    // under it, in paint_back, and were unreadable where data was).
+    p.save();
+    // --draw headings
+    const int row_height = _view->get_signalHeight();
+    for (size_t i = 0; i < _cur_row_headings.size(); i++)
+    {
+        const int y = i * row_height + get_y() - _totalHeight * 0.5;
+
+        p.setPen(QPen(Qt::NoPen));
+        p.setBrush(QApplication::palette().brush(QPalette::WindowText));
+
+        const QRect r(left + ArrowSize * 2, y,
+            right - left, row_height / 2);
+        const QString h(_cur_row_headings[i]);
+        const int f = Qt::AlignLeft | Qt::AlignVCenter |
+            Qt::TextDontClip;
+        const QPointF points[] = {
+            QPointF(left, r.center().y() - ArrowSize),
+            QPointF(left + ArrowSize, r.center().y()),
+            QPointF(left, r.center().y() + ArrowSize)
+        };
+        p.drawPolygon(points, countof(points));
+
+        // A see-through backing box keeps the row name readable over the
+        // decoded data, while the data still shows through a little.
+        const QRect text_rect = p.fontMetrics().boundingRect(r, f, h);
+        QColor box_colour(back);
+        box_colour.setAlpha(170);
+        p.save();
+        p.setBrush(box_colour);
+        p.drawRoundedRect(QRectF(text_rect).adjusted(-3, -1, 3, 1), 3, 3);
+        p.restore();
+
+        // Draw the text
+        p.setPen(fore);
+        p.drawText(r, f, h);
+    }
+    p.restore();
 }
  
 void DecodeTrace::draw_annotation(const pv::data::decode::Annotation &a,
