@@ -200,6 +200,14 @@
         "text": "Split"
     },
     {
+        "id": "IDS_TOOLBAR_GO_TRIG",
+        "text": "Trig Pos"
+    },
+    {
+        "id": "IDS_TOOLBAR_GO_TRIG_TIP",
+        "text": "Center the view on the trigger position, keeping the zoom"
+    },
+    {
         "id": "IDS_TOOLBAR_FUNCTION_CHMEASURE",
         "text": "Ch-Ch Measure"
     },

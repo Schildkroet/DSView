@@ -333,6 +333,8 @@ public:
     }
 
     void scroll_to_logic_last_data_time();
+    // Centre the view on the trigger position, keeping the zoom (LOGIC only).
+    void scroll_to_trigger();
 
     /*
      * horizental cursors

@@ -70,6 +70,7 @@ signals:
     void sig_search(bool visible);
     void sig_show_lissajous(bool visible);
     void sig_dso_split(bool split); //split each DSO channel into its own row
+    void sig_go_trigger(); //centre the view on the trigger position
 
 private slots:
     void on_actionDark_triggered();
@@ -101,6 +102,7 @@ private:
     XToolButton _function_button;
     XToolButton _setting_button;
     XToolButton _dso_split_button;
+    XToolButton _go_trig_button;
     QAction     *_trig_action;
     QAction     *_protocol_action;
     QAction     *_measure_action;
@@ -108,6 +110,7 @@ private:
     QAction     *_function_action;
     QAction     *_display_action;
     QAction     *_dso_split_action;
+    QAction     *_go_trig_action;
 
     QMenu       *_function_menu;
     QAction     *_action_fft;

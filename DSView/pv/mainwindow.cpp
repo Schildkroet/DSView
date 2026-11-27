@@ -311,6 +311,7 @@ namespace pv
         connect(_trig_bar, SIGNAL(sig_trigger(bool)), this, SLOT(on_trigger(bool)));
         connect(_trig_bar, SIGNAL(sig_measure(bool)), this, SLOT(on_measure(bool)));
         connect(_trig_bar, SIGNAL(sig_search(bool)), this, SLOT(on_search(bool)));
+        connect(_trig_bar, &toolbars::TrigBar::sig_go_trigger, _view, &view::View::scroll_to_trigger);
         connect(_trig_bar, SIGNAL(sig_setTheme(QString)), this, SLOT(switchTheme(QString)));
         connect(_trig_bar, SIGNAL(sig_show_lissajous(bool)), _view, SLOT(show_lissajous(bool)));
         connect(_trig_bar, &toolbars::TrigBar::sig_dso_split, _view, &view::View::set_dso_split_channels);

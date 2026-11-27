@@ -52,7 +52,8 @@ TrigBar::TrigBar(SigSession *session, QWidget *parent) :
     _search_button(this),
     _function_button(this),
     _setting_button(this),
-    _dso_split_button(this)
+    _dso_split_button(this),
+    _go_trig_button(this)
 {
     _enable = true;
 
@@ -126,6 +127,7 @@ TrigBar::TrigBar(SigSession *session, QWidget *parent) :
     _setting_button.setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
     _dso_split_button.setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
     _dso_split_button.setCheckable(true);
+    _go_trig_button.setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 
     _protocol_button.setContentsMargins(0,0,0,0);
 
@@ -136,12 +138,14 @@ TrigBar::TrigBar(SigSession *session, QWidget *parent) :
     _function_action = addWidget(&_function_button);
     _display_action = addWidget(&_setting_button); //must be created
     _dso_split_action = addWidget(&_dso_split_button);
+    _go_trig_action = addWidget(&_go_trig_button);
 
     connect(&_trig_button, SIGNAL(clicked()),this, SLOT(trigger_clicked()));
     connect(&_protocol_button, SIGNAL(clicked()),this, SLOT(protocol_clicked()));
     connect(&_measure_button, SIGNAL(clicked()),this, SLOT(measure_clicked()));
     connect(&_search_button, SIGNAL(clicked()), this, SLOT(search_clicked()));
     connect(&_dso_split_button, SIGNAL(clicked()), this, SLOT(dso_split_clicked()));
+    connect(&_go_trig_button, SIGNAL(clicked()), this, SIGNAL(sig_go_trigger()));
 
     connect(_action_fft, SIGNAL(triggered()), this, SLOT(on_actionFft_triggered()));
     connect(_action_math, SIGNAL(triggered()), this, SLOT(on_actionMath_triggered()));
@@ -171,6 +175,9 @@ void TrigBar::retranslateUi()
     _search_button.setText(L_S(STR_PAGE_TOOLBAR, S_ID(IDS_TOOLBAR_SEARCH), "Search"));
     _function_button.setText(L_S(STR_PAGE_TOOLBAR, S_ID(IDS_TOOLBAR_FUNCTION), "Function"));
     _dso_split_button.setText(L_S(STR_PAGE_TOOLBAR, S_ID(IDS_TOOLBAR_DSO_SPLIT), "Split"));
+    _go_trig_button.setText(L_S(STR_PAGE_TOOLBAR, S_ID(IDS_TOOLBAR_GO_TRIG), "Trig Pos"));
+    _go_trig_button.setToolTip(L_S(STR_PAGE_TOOLBAR, S_ID(IDS_TOOLBAR_GO_TRIG_TIP),
+                                   "Center the view on the trigger position, keeping the zoom"));
 
     _setting_button.setText(L_S(STR_PAGE_TOOLBAR, S_ID(IDS_TOOLBAR_DISPLAY), "Display"));
     _themes->setTitle(L_S(STR_PAGE_TOOLBAR, S_ID(IDS_TOOLBAR_DISPLAY_THEMES), "Themes"));
@@ -202,6 +209,7 @@ void TrigBar::reStyle()
     _function_button.setIcon(QIcon(iconPath+"/function.svg"));
     _setting_button.setIcon(QIcon(iconPath+"/display.svg"));
     _dso_split_button.setIcon(QIcon(iconPath+"/dso-split.svg"));
+    _go_trig_button.setIcon(QIcon(iconPath+"/go-trigger.svg"));
 
     _action_fft->setIcon(QIcon(iconPath+"/fft.svg"));
     _action_math->setIcon(QIcon(iconPath+"/math.svg"));
@@ -299,6 +307,7 @@ void TrigBar::reload()
         _action_lissajous->setVisible(false);
         _action_dispalyOptions->setVisible(true);
         _dso_split_action->setVisible(false);
+        _go_trig_action->setVisible(true);
 
     } else if (mode == ANALOG) {
         _trig_action->setVisible(false);
@@ -309,6 +318,7 @@ void TrigBar::reload()
         _action_lissajous->setVisible(false);
         _action_dispalyOptions->setVisible(true);
         _dso_split_action->setVisible(false);
+        _go_trig_action->setVisible(false);
 
     } else if (mode == DSO) {
         _trig_action->setVisible(true);
@@ -319,6 +329,7 @@ void TrigBar::reload()
         _action_lissajous->setVisible(true);
         _action_dispalyOptions->setVisible(true);
         _dso_split_action->setVisible(true);
+        _go_trig_action->setVisible(false);
         _dso_split_button.setChecked(AppConfig::Instance().appOptions.dsoSplitChannels);
     }
 

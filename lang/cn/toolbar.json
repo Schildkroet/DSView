@@ -200,6 +200,14 @@
         "text": "分屏"
     },
     {
+        "id": "IDS_TOOLBAR_GO_TRIG",
+        "text": "触发点"
+    },
+    {
+        "id": "IDS_TOOLBAR_GO_TRIG_TIP",
+        "text": "以触发位置为中心显示，保持缩放"
+    },
+    {
         "id": "IDS_TOOLBAR_FUNCTION_CHMEASURE",
         "text": "通道间测量"
     },

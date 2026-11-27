@@ -1700,6 +1700,23 @@ void View::scroll_to_logic_last_data_time()
     set_scale_offset(scale(), get_logic_lst_data_offset() + 10);
 }
 
+void View::scroll_to_trigger()
+{
+    if (!_device_agent->have_instance() || _device_agent->get_work_mode() != LOGIC)
+        return;
+    if (!_session->have_view_data())
+        return;
+
+    const uint64_t rate = _session->cur_snap_samplerate();
+    if (rate == 0)
+        return;
+
+    // The time ruler counts from this position, and the trigger flag is
+    // drawn here. set_scale_offset() clamps the offset to the capture.
+    const double time = _session->get_trigger_pos() * 1.0 / rate;
+    set_scale_offset(_scale, (int64_t)llround(time / _scale - get_view_width() / 2.0));
+}
+
 // -- calibration dialog
 void View::show_calibration()
 {

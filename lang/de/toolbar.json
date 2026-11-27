@@ -200,6 +200,14 @@
         "text": "Teilen"
     },
     {
+        "id": "IDS_TOOLBAR_GO_TRIG",
+        "text": "Trigger-Pos."
+    },
+    {
+        "id": "IDS_TOOLBAR_GO_TRIG_TIP",
+        "text": "Ansicht auf die Triggerposition zentrieren, der Zoom bleibt"
+    },
+    {
         "id": "IDS_TOOLBAR_FUNCTION_CHMEASURE",
         "text": "Kanal-Kanal-Messung"
     },
