@@ -156,8 +156,8 @@ private:
     void paintProgress(QPainter& p, QColor fore, QColor back);
     void paintMeasure(QPainter &p, QColor fore, QColor back);
 
-    // One line of a measurement balloon: label, value, and an optional
-    // dimmed third column (a sample count).
+    // One measurement of the measurement box: label and value on a line,
+    // and an optional sample count on a line of its own below.
     struct MeasureRow {
         QString label;
         QString value;

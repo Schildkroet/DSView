@@ -2188,10 +2188,11 @@ void Viewport::measure()
     measure_updated();
 }
 
-// A compact table beside the mouse: label | value | extra (sample counts).
-// Scaled together with the traces/text, a little smaller than the trace font,
-// and see-through so the waveform stays visible. Used by the floating
-// measurement and by the manual ones (edge count, edge to edge).
+// The measurement box beside the mouse: one line per measurement, with its
+// label on the left and its value on the right; a sample count gets a line of
+// its own below. Thin lines separate the measurements. The box is kept inside
+// the view. Used by the floating measurement and by the manual ones (edge
+// count, edge to edge).
 void Viewport::paintMeasureBalloon(QPainter &p, QColor fore, QColor back,
                                    const std::vector<MeasureRow> &rows)
 {
@@ -2200,34 +2201,37 @@ void Viewport::paintMeasureBalloon(QPainter &p, QColor fore, QColor back,
 
     p.save();
 
-    // Never smaller than normal: the traces may be zoomed out to fit.
-    const double sc = std::max(1.0, _view.get_trace_font_scale());
+    // Scale the box together with the traces/text.
+    const double sc = _view.get_trace_font_scale();
 
-    // Use an explicit (scaled, non-condensed) font so the popup text
-    // and its box stay consistent regardless of prior painter state.
+    // Use an explicit (scaled, non-condensed) font so the text and its box
+    // stay consistent regardless of prior painter state.
     QFont measure_font = p.font();
     measure_font.setStretch(QFont::Unstretched);
     float mfSize = AppConfig::Instance().GetTraceFontSize();
-    measure_font.setPointSizeF(mfSize * sc * 0.9);
+    measure_font.setPointSizeF(mfSize * sc);
     p.setFont(measure_font);
     const QFontMetrics fm = p.fontMetrics();
 
     // Measure the (localized) labels too: translations run longer
     // than English (e.g. German "Tastverhältnis: " for "Duty Cycle: ").
     int label_w = 0, value_w = 0, extra_w = 0;
+    int lines = 0;
     for (const MeasureRow &r : rows) {
         label_w = max(label_w, fm.boundingRect(r.label.trimmed()).width());
         value_w = max(value_w, fm.boundingRect(r.value).width());
-        if (!r.extra.isEmpty())
+        lines++;
+        if (!r.extra.isEmpty()) {
             extra_w = max(extra_w, fm.boundingRect(r.extra.simplified()).width());
+            lines++;
+        }
     }
 
-    const double pad = 6.0 * sc;
-    const double gap = 10.0 * sc;
-    const double row_h = fm.height() + 2.0 * sc;
-    const int typical_width = (int)(pad * 2 + label_w + gap + value_w
-                                    + (extra_w > 0 ? gap + extra_w : 0));
-    const double box_h = pad * 2 + row_h * rows.size();
+    const double pad = 5.0 * sc;
+    const double gap = 20.0 * sc;
+    const double row_h = max(20.0 * sc, fm.height() + 2.0);
+    const int typical_width = (int)(pad * 2 + max(label_w + gap + value_w, (double)extra_w));
+    const double box_h = pad * 2 + row_h * lines;
 
     const int hoverpoint_x = _view.hover_point().x();
     const int hoverpoint_y = _view.hover_point().y();
@@ -2260,31 +2264,30 @@ void Viewport::paintMeasureBalloon(QPainter &p, QColor fore, QColor back,
     hover_x = std::max(0.0, std::min(hover_x, width - typical_width));
     hover_y = std::max(0.0, std::min(hover_y, height - box_h));
 
-    const QRectF measure_rect(hover_x, hover_y, (double)typical_width, box_h);
-    QColor box_fill(back);
-    box_fill.setAlpha(215);
-    QColor box_edge(fore);
-    box_edge.setAlpha(70);
-    p.setPen(QPen(box_edge, 1));
-    p.setBrush(box_fill);
-    p.drawRoundedRect(measure_rect, 4 * sc, 4 * sc);
+    p.setPen(Qt::NoPen);
+    p.setBrush(back.black() > 0x80 ? View::TransparentLightBlue : View::TransparentLightYellow);
+    p.drawRect(QRectF(hover_x, hover_y, (double)typical_width, box_h));
 
-    QColor extra_colour(fore);
-    extra_colour.setAlpha(150);
-    const double value_x = hover_x + pad + label_w + gap;
-    const double extra_x = value_x + value_w + gap;
+    QColor line_colour(fore);
+    line_colour.setAlpha(90);
+    const double tw = (double)typical_width - 2 * pad;
+    double y = hover_y + pad;
 
     for (size_t i = 0; i < rows.size(); i++) {
-        const double y = hover_y + pad + row_h * i;
+        if (i > 0) {
+            // A line between the measurements.
+            p.setPen(QPen(line_colour, 1));
+            p.drawLine(QLineF(hover_x + pad, y, hover_x + pad + tw, y));
+        }
         p.setPen(rows[i].colour);
-        p.drawText(QRectF(hover_x + pad, y, label_w, row_h),
-                   Qt::AlignLeft | Qt::AlignVCenter, rows[i].label.trimmed());
-        p.drawText(QRectF(value_x, y, value_w, row_h),
-                   Qt::AlignRight | Qt::AlignVCenter, rows[i].value);
+        const QRectF line_rect(hover_x + pad, y, tw, row_h);
+        p.drawText(line_rect, Qt::AlignLeft | Qt::AlignVCenter, rows[i].label.trimmed());
+        p.drawText(line_rect, Qt::AlignRight | Qt::AlignVCenter, rows[i].value);
+        y += row_h;
         if (!rows[i].extra.isEmpty()) {
-            p.setPen(extra_colour);
-            p.drawText(QRectF(extra_x, y, extra_w, row_h),
-                       Qt::AlignLeft | Qt::AlignVCenter, rows[i].extra.simplified());
+            p.drawText(QRectF(hover_x + pad, y, tw, row_h),
+                       Qt::AlignRight | Qt::AlignVCenter, rows[i].extra.simplified());
+            y += row_h;
         }
     }
 
