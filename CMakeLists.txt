@@ -739,6 +739,9 @@ else()
     if(CMAKE_SYSTEM_NAME MATCHES "Linux")
         install(FILES DSView/DSView.desktop DESTINATION /usr/share/applications RENAME io.github.schildkroet.dsview.desktop)
         install(FILES DSView/io.github.schildkroet.dsview.appdata.xml DESTINATION /usr/share/metainfo)
+        # The .dsl capture type the desktop entry claims. shared-mime-info's
+        # dpkg trigger runs update-mime-database for it.
+        install(FILES DSView/io.github.schildkroet.dsview.mime.xml DESTINATION /usr/share/mime/packages RENAME io.github.schildkroet.dsview.xml)
 
         add_compile_definitions(_DEFAULT_SOURCE)
 

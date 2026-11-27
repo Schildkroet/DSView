@@ -8,4 +8,4 @@ Icon=dsview
 StartupWMClass=DSView
 Terminal=false
 Categories=Development;Electronics;Qt;
-MimeType=text/x-dsl;
+MimeType=application/x-dsview-capture;
