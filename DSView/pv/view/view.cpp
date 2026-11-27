@@ -870,7 +870,7 @@ void View::signals_changed(const Trace* eventTrace)
     // afterwards instead of jumping to the top on every resize.
     const QScrollBar *vbar = verticalScrollBar();
     const int old_v_scroll = vbar->value();
-    const int old_v_content = vbar->maximum() + vbar->pageStep();
+    const int old_v_pitch = _spanY;
 
     get_traces(ALL_VIEW, traces);
 
@@ -1066,23 +1066,26 @@ void View::signals_changed(const Trace* eventTrace)
     }
 
     // header_updated() sets the scroll range for the new layout. Scale the
-    // old position by the change in content height, so the same traces stay
-    // at the top when row heights follow the pane height, and the position
-    // is unchanged when they don't. Qt clamps it to the new range.
+    // old position by the change in row pitch, so the same traces stay at
+    // the top after a vertical zoom or a pane resize that changed the row
+    // height. Adding, removing, enabling or disabling traces changes only
+    // the content height, and then the position stays. Qt clamps it to the
+    // new range.
     header_updated();
-    restore_v_scroll(old_v_scroll, old_v_content);
+    restore_v_scroll(old_v_scroll, old_v_pitch);
     update_scale_offset();
     data_updated();
 }
 
-void View::restore_v_scroll(int old_value, int old_content)
+void View::restore_v_scroll(int old_value, int old_pitch)
 {
     QScrollBar *vbar = verticalScrollBar();
     int value = 0;
 
-    if (old_value > 0 && old_content > 0 && vbar->maximum() > 0) {
-        const int new_content = vbar->maximum() + vbar->pageStep();
-        value = qRound(old_value * (double)new_content / old_content);
+    if (old_value > 0 && vbar->maximum() > 0) {
+        value = old_value;
+        if (old_pitch > 0 && _spanY > 0 && _spanY != old_pitch)
+            value = qRound(old_value * (double)_spanY / old_pitch);
 
         // Scaling can land partway into a channel. Put it back on a
         // channel boundary, as a scroll would.

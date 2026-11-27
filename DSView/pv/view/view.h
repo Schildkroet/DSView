@@ -449,7 +449,7 @@ private:
     // step always reaches the next stop in its direction.
     int snap_v_offset(int value, int from = -1);
     bool v_snap_enabled();
-    void restore_v_scroll(int old_value, int old_content);
+    void restore_v_scroll(int old_value, int old_pitch);
     void update_margins();
     // Height above the trace area: the ruler, and the time bar when shown.
     int get_top_margin();
@@ -573,7 +573,7 @@ private:
     int64_t     _x_offset;
     int64_t     _y_offset;
     int64_t     _preOffset;
-    int         _spanY;
+    int         _spanY = 0;
     int         _signalHeight;
     double      _trace_height_factor;
 
