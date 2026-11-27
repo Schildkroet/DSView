@@ -152,6 +152,10 @@ class Decoder(srd.Decoder):
         self.samplenum_lastedge = 0
         self.samplenum_sop = None
         self.edgepins = None
+        # On a hub upstream segment ('low-speed-rp'): the current packet is
+        # a full-speed one. Only its bit rate differs, the polarity is the
+        # same, and the segment stays in 'low-speed-rp'.
+        self.rp_full_speed = False
         self.consecutive_ones = 0
         self.bits = None
         self.state = 'IDLE'
@@ -166,9 +170,12 @@ class Decoder(srd.Decoder):
             self.signalling = self.options['signalling']
             self.update_bitrate()
 
-    def update_bitrate(self): 
+    def update_bitrate(self):
         if self.signalling != 'automatic':
-            self.bitrate = bitrates[self.signalling]
+            if self.signalling == 'low-speed-rp' and self.rp_full_speed:
+                self.bitrate = bitrates['full-speed']
+            else:
+                self.bitrate = bitrates[self.signalling]
             self.bitwidth = float(self.samplerate) / float(self.bitrate)
 
     def putpx(self, data):
@@ -227,9 +234,10 @@ class Decoder(srd.Decoder):
         # SYNC starts with a single K bit. A full-speed K has ended (edge seen)
         # well before the middle of a low-speed bit (skip timeout).
         if pins == self.edgepins:
+            self.rp_full_speed = False
             self.start_packet()
         else:
-            self.signalling = 'full-speed'
+            self.rp_full_speed = True
             self.start_packet()
             self.get_bit('K') # The first bit has already gone by.
 
@@ -290,6 +298,7 @@ class Decoder(srd.Decoder):
             self.putpx(['EOP', None])
             self.state = 'IDLE'
             self.signalling = 'low-speed-rp'
+            self.rp_full_speed = False
             self.update_bitrate()
             self.oldsym = 'J'
         if b == '0':
@@ -323,6 +332,8 @@ class Decoder(srd.Decoder):
             self.signalling = 'low-speed'
         else:
             self.signalling = self.options['signalling']
+        # GET SPEED picks the rate of the next packet again.
+        self.rp_full_speed = False
         self.update_bitrate()
 
         self.oldsym = 'J'
