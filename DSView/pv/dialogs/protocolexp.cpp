@@ -265,7 +265,7 @@ void ProtocolExp::onAccept()
     bool bSaveHistory = false;
 
     QString fname = path::GetDirectoryName(file_name);
-    if (fname != app.userHistory.openDir)
+    if (fname != app.userHistory.protocolExportPath)
     {
         app.userHistory.protocolExportPath = fname;
         bSaveHistory = true;
