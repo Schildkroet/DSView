@@ -416,6 +416,104 @@ void DecodeTrace::paint_mid(QPainter &p, int left, int right, QColor fore, QColo
     }
 }
 
+bool DecodeTrace::get_annotation_at(const QPoint &pt, QStringList &texts, QString &row_title)
+{
+    using namespace pv::data::decode;
+
+    // How far from an annotation, in pixels, a click still hits it.
+    const double HitMargin = 3;
+    // Ranges narrower than this are covered by their neighbours on screen.
+    const double MinVisibleWidth = 4;
+
+    assert(_decoder_stack);
+    assert(_view);
+
+    double samplerate = _decoder_stack->samplerate();
+    if (samplerate == 0.0)
+        samplerate = 1.0;
+
+    const double samples_per_pixel = samplerate * _view->scale();
+    const int64_t pixels_offset = _view->x_offset();
+    const int annotation_height = _view->get_signalHeight();
+
+    // Same row layout as paint_mid().
+    int y = get_y() - (_totalHeight - annotation_height) * 0.5;
+
+    for (auto dec : _decoder_stack->stack()) {
+        if (!dec->shown()) {
+            y += annotation_height;
+            continue;
+        }
+
+        const std::map<const Row, bool> rows = _decoder_stack->get_rows_gshow();
+        for (auto i = rows.begin(); i != rows.end(); i++) {
+            if ((*i).first.decoder() != dec->decoder() ||
+                !_decoder_stack->has_annotations((*i).first) || !(*i).second)
+                continue;
+
+            const Row &row = (*i).first;
+            const int top = y - annotation_height / 2;
+            y += annotation_height;
+
+            if (pt.y() < top || pt.y() >= top + annotation_height)
+                continue;
+
+            // An instant is drawn about one row height wide.
+            const double margin = std::max(HitMargin, annotation_height / 2.0);
+            const double from = std::max((pt.x() - margin + pixels_offset) * samples_per_pixel, 0.0);
+            const double to = std::max((pt.x() + margin + pixels_offset) * samples_per_pixel, 0.0);
+
+            std::vector<Annotation*> annotations;
+            _decoder_stack->get_annotation_subset(annotations, row,
+                                                  (uint64_t)from, (uint64_t)ceil(to));
+
+            // Take the closest annotation. Slivers too narrow to see (such
+            // as UART start bits when zoomed out) lose to a visible
+            // neighbour within reach; of several under the mouse, take the
+            // widest, which is the one drawn on top.
+            const Annotation *best = NULL;
+            double best_dist = 0;
+            double best_width = 0;
+
+            for (const Annotation *a : annotations) {
+                const double start = a->start_sample() / samples_per_pixel - pixels_offset;
+                const double end = a->end_sample() / samples_per_pixel - pixels_offset;
+                double dist = 0;
+                if (pt.x() < start)
+                    dist = start - pt.x();
+                else if (pt.x() > end)
+                    dist = pt.x() - end;
+
+                const double limit = (a->start_sample() == a->end_sample()) ? margin : HitMargin;
+                if (dist > limit)
+                    continue;
+
+                const double width = end - start;
+                if (a->start_sample() != a->end_sample() && width < MinVisibleWidth)
+                    dist += HitMargin + 1;
+
+                if (best == NULL || dist < best_dist ||
+                    (dist == best_dist && width >= best_width)) {
+                    best = a;
+                    best_dist = dist;
+                    best_width = width;
+                }
+            }
+
+            if (best == NULL || best->annotations().empty())
+                return false;
+
+            texts.clear();
+            for (const QString &s : best->annotations())
+                texts.push_back(s);
+            row_title = row.title();
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void DecodeTrace::paint_fore(QPainter &p, int left, int right, QColor fore, QColor back)
 {
 	using namespace pv::data::decode;
@@ -686,17 +784,21 @@ void DecodeTrace::draw_range(const pv::data::decode::Annotation &a, QPainter &p,
     dsv_detail("Allowed width: %d", max_width);
     int flags = Qt::AlignCenter;
     if (best_annotation.isEmpty()) {
-        // no fitting annotation found, use the last one with maximum condensing
-        // also alpha blend the right end of the text to indicate truncation
-        QLinearGradient gradient(rect.right() - (rect.width() / 5), rect.top(),
-            rect.right(), rect.top());
-        gradient.setColorAt(0.0, text_color);
-        gradient.setColorAt(1.0, QColor(text_color.red(), text_color.green(), text_color.blue(), 0));
-        p.setPen(QPen(QBrush(gradient), 1));
-		best_annotation = annotations.back();
+        // Nothing fits, even condensed. Cutting the text off would show a
+        // different value ("6" for "6F"), so shorten the shortest form with
+        // an ellipsis instead ("6…", or only "…"). The full text is in the
+        // tooltip and the right-click menu.
         condensed_font.setStretch(MIN_STRETCH);
-        dsv_detail("[CLIP] Width after stretch: %d", p.boundingRect(QRect(), 0, best_annotation).width());
-        flags = Qt::AlignLeft | Qt::AlignVCenter;
+        const QFontMetrics condensed_fm(condensed_font);
+        const QString ellipsis(QChar(0x2026));
+        if (condensed_fm.boundingRect(ellipsis).width() > max_width) {
+            p.restore();
+            return;
+        }
+        best_annotation = condensed_fm.elidedText(annotations.back(), Qt::ElideRight, max_width);
+        if (best_annotation.isEmpty())
+            best_annotation = ellipsis;
+        dsv_detail("[CLIP] Elided to: %s", best_annotation.toUtf8().constData());
     }
 
     p.setFont(condensed_font);

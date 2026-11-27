@@ -1346,5 +1346,37 @@
     {
         "id": "IDS_DLG_SRCH_HELP_MATCH_WINDOWS",
         "text": "Time windows include both ends. Start one at 1sa to leave out the match itself."
+    },
+    {
+        "id": "IDS_DLG_EXPORT_SEPARATOR",
+        "text": "Separator: "
+    },
+    {
+        "id": "IDS_DLG_SEPARATOR_COMMA",
+        "text": "Comma ( , )"
+    },
+    {
+        "id": "IDS_DLG_SEPARATOR_SEMICOLON",
+        "text": "Semicolon ( ; )"
+    },
+    {
+        "id": "IDS_DLG_SEPARATOR_TAB",
+        "text": "Tab"
+    },
+    {
+        "id": "IDS_DLG_SEPARATOR_PIPE",
+        "text": "Pipe ( | )"
+    },
+    {
+        "id": "IDS_DLG_SEPARATOR_SPACE",
+        "text": "Space"
+    },
+    {
+        "id": "IDS_DLG_EXPORT_BETWEEN_CURSORS",
+        "text": "Only between cursors: "
+    },
+    {
+        "id": "IDS_DLG_EXPORT_RANGE_NEED_CURSORS",
+        "text": "Place at least two cursors on the waveform to use this."
     }
 ]

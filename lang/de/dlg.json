@@ -1342,5 +1342,37 @@
     {
         "id": "IDS_DLG_SRCH_HELP_MATCH_WINDOWS",
         "text": "Zeitfenster schließen beide Enden ein. Beginnen Sie eines bei 1sa, um den Treffer selbst auszunehmen."
+    },
+    {
+        "id": "IDS_DLG_EXPORT_SEPARATOR",
+        "text": "Trennzeichen: "
+    },
+    {
+        "id": "IDS_DLG_SEPARATOR_COMMA",
+        "text": "Komma ( , )"
+    },
+    {
+        "id": "IDS_DLG_SEPARATOR_SEMICOLON",
+        "text": "Semikolon ( ; )"
+    },
+    {
+        "id": "IDS_DLG_SEPARATOR_TAB",
+        "text": "Tabulator"
+    },
+    {
+        "id": "IDS_DLG_SEPARATOR_PIPE",
+        "text": "Senkrechter Strich ( | )"
+    },
+    {
+        "id": "IDS_DLG_SEPARATOR_SPACE",
+        "text": "Leerzeichen"
+    },
+    {
+        "id": "IDS_DLG_EXPORT_BETWEEN_CURSORS",
+        "text": "Nur zwischen Cursorn: "
+    },
+    {
+        "id": "IDS_DLG_EXPORT_RANGE_NEED_CURSORS",
+        "text": "Setzen Sie dazu mindestens zwei Cursor auf die Kurve."
     }
 ]

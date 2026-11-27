@@ -149,6 +149,7 @@ struct UserHistory
   QString   openDir;
   QString   protocolExportPath;
   QString   exportFormat;
+  QString   protocolExportSeparator; // Column separator for decoder (protocol) export
   bool      showDriverHint;
 };
 

@@ -41,6 +41,8 @@
 #include <math.h>
 #include <QWheelEvent>
 #include <QScrollBar>
+#include <QToolTip>
+#include <QHelpEvent>
 
 #include "../config/appconfig.h"
 #include "../dsvdef.h"
@@ -159,6 +161,31 @@ bool Viewport::event(QEvent *event)
 {
     if (event->type() == QEvent::NativeGesture)
         return gestureEvent(static_cast<QNativeGestureEvent*>(event));
+
+    // Hovering a decoded value shows its full text, which may be shortened
+    // on screen when it doesn't fit.
+    if (event->type() == QEvent::ToolTip) {
+        QHelpEvent *help = static_cast<QHelpEvent*>(event);
+        if (_type == TIME_VIEW && _action_type == NO_ACTION &&
+            _view.session().get_device()->get_work_mode() == LOGIC) {
+            std::vector<Trace*> traces;
+            _view.get_traces(_type, traces);
+            for (auto t : traces) {
+                if (t->signal_type() != SR_CHANNEL_DECODER || !t->enabled())
+                    continue;
+                QStringList texts;
+                QString row_title;
+                if (((DecodeTrace*)t)->get_annotation_at(help->pos(), texts, row_title)) {
+                    QToolTip::showText(help->globalPos(), texts.front(), this);
+                    return true;
+                }
+            }
+        }
+        QToolTip::hideText();
+        event->ignore();
+        return true;
+    }
+
     return QWidget::event(event);
 }
 

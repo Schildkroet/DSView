@@ -36,6 +36,9 @@
 #include "../data/decode/row.h"
 #include "../data/decode/annotation.h"
 #include "../view/decodetrace.h"
+#include "../view/view.h"
+#include "../view/cursor.h"
+#include <QHBoxLayout>
 #include "../data/decodermodel.h"
 #include "../config/appconfig.h"
 #include "../dsvdef.h"
@@ -53,7 +56,7 @@ using namespace pv::data::decode;
 namespace pv {
 namespace dialogs {
 
-ProtocolExp::ProtocolExp(QWidget *parent, SigSession *session) :
+ProtocolExp::ProtocolExp(QWidget *parent, SigSession *session, view::View *view) :
     DSDialog(parent),
     _session(session),
     _button_box(QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
@@ -61,6 +64,9 @@ ProtocolExp::ProtocolExp(QWidget *parent, SigSession *session) :
     _export_cancel(false)
 {
     _bAbleClose = false;
+    _use_range = false;
+    _range_start = 0;
+    _range_end = 0;
 
     _format_combobox = new DsComboBox(this);
     //tr
@@ -73,6 +79,61 @@ ProtocolExp::ProtocolExp(QWidget *parent, SigSession *session) :
     _flayout->setLabelAlignment(Qt::AlignLeft);
     _flayout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
     _flayout->addRow(new QLabel(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_EXPORT_FORMAT), "Export Format: "), this), _format_combobox);
+
+    // Column separator. The item data holds the actual separator string.
+    _separator_combobox = new DsComboBox(this);
+    _separator_combobox->addItem(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_SEPARATOR_COMMA), "Comma ( , )"), QString(","));
+    _separator_combobox->addItem(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_SEPARATOR_SEMICOLON), "Semicolon ( ; )"), QString(";"));
+    _separator_combobox->addItem(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_SEPARATOR_TAB), "Tab"), QString("\t"));
+    _separator_combobox->addItem(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_SEPARATOR_PIPE), "Pipe ( | )"), QString("|"));
+    _separator_combobox->addItem(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_SEPARATOR_SPACE), "Space"), QString(" "));
+
+    int sep_index = _separator_combobox->findData(AppConfig::Instance().userHistory.protocolExportSeparator);
+    _separator_combobox->setCurrentIndex(sep_index >= 0 ? sep_index : 0);
+
+    _flayout->addRow(new QLabel(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_EXPORT_SEPARATOR), "Separator: "), this), _separator_combobox);
+
+    // Optional range: only the annotations between two cursors.
+    // The combo boxes list the cursors by their number on the ruler;
+    // the item data holds the cursor's sample index.
+    _range_checkbox = new QCheckBox(this);
+    _range_from_combobox = new DsComboBox(this);
+    _range_to_combobox = new DsComboBox(this);
+
+    int cursor_count = 0;
+    if (view != NULL) {
+        for (auto cursor : view->get_cursorList()) {
+            cursor_count++;
+            _range_from_combobox->addItem(QString::number(cursor_count), QVariant::fromValue<qulonglong>(cursor->index()));
+            _range_to_combobox->addItem(QString::number(cursor_count), QVariant::fromValue<qulonglong>(cursor->index()));
+        }
+    }
+
+    QWidget *range_widget = new QWidget(this);
+    QHBoxLayout *range_layout = new QHBoxLayout(range_widget);
+    range_layout->setContentsMargins(0, 0, 0, 0);
+    range_layout->addWidget(_range_checkbox);
+    range_layout->addWidget(_range_from_combobox);
+    range_layout->addWidget(new QLabel("-", this));
+    range_layout->addWidget(_range_to_combobox);
+    range_layout->addStretch(1);
+
+    if (cursor_count >= 2) {
+        _range_to_combobox->setCurrentIndex(1);
+        auto update_range_enable = [this](bool on) {
+            _range_from_combobox->setEnabled(on);
+            _range_to_combobox->setEnabled(on);
+        };
+        update_range_enable(false);
+        connect(_range_checkbox, &QCheckBox::toggled, this, update_range_enable);
+    }
+    else {
+        range_widget->setEnabled(false);
+        range_widget->setToolTip(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_EXPORT_RANGE_NEED_CURSORS),
+                                     "Place at least two cursors on the waveform to use this."));
+    }
+
+    _flayout->addRow(new QLabel(L_S(STR_PAGE_DLG, S_ID(IDS_DLG_EXPORT_BETWEEN_CURSORS), "Only between cursors: "), this), range_widget);
 
     pv::data::DecoderModel* decoder_model = _session->get_decoder_model();
 
@@ -188,12 +249,35 @@ void ProtocolExp::onAccept()
         //tr
         file_name += "." + ext;
 
+    _separator = _separator_combobox->currentData().toString();
+    if (_separator.isEmpty())
+        _separator = ",";
+
+    _use_range = _range_checkbox->isEnabled() && _range_checkbox->isChecked()
+                 && _range_from_combobox->count() >= 2;
+    if (_use_range) {
+        const uint64_t a = _range_from_combobox->currentData().toULongLong();
+        const uint64_t b = _range_to_combobox->currentData().toULongLong();
+        _range_start = std::min(a, b);
+        _range_end = std::max(a, b);
+    }
+
+    bool bSaveHistory = false;
+
     QString fname = path::GetDirectoryName(file_name);
     if (fname != app.userHistory.openDir)
     {
         app.userHistory.protocolExportPath = fname;
-        app.SaveHistory();
+        bSaveHistory = true;
     }
+    if (_separator != app.userHistory.protocolExportSeparator)
+    {
+        app.userHistory.protocolExportSeparator = _separator;
+        bSaveHistory = true;
+    }
+    if (bSaveHistory)
+        app.SaveHistory();
+
     _fileName = file_name;
  
     QFuture<void> future;
@@ -278,10 +362,17 @@ void ProtocolExp::save_proc()
     //get annotation list
     uint64_t total_ann_count = 0;
 
+    uint64_t export_start = 0;
+    uint64_t export_end = decoder_stack->sample_count() - 1;
+    if (_use_range) {
+        export_start = _range_start;
+        export_end = _range_end;
+    }
+
     for (int i=0; i<row_num; i++)
     {
         decoder_stack->get_annotation_subset(annotations_arr[i], *row_inf_arr[i].row,
-                                         0, decoder_stack->sample_count() - 1);
+                                         export_start, export_end);
         total_ann_count += (uint64_t)annotations_arr[i].size();
         sort(annotations_arr[i].begin(), annotations_arr[i].end(), compare_ann_index);  
         row_inf_arr[i].read_index = 0;
@@ -292,15 +383,12 @@ void ProtocolExp::save_proc()
 
     for (int i=0; i<row_num; i++) {
         if (i > 0 && i < row_num){
-            title_str.append(",");
+            title_str.append(_separator);
         }
-        title_str.append(row_inf_arr[i].title);
+        title_str.append(escape_field(row_inf_arr[i].title));
     }
 
-    out << QString("%1,%2,%3\n")
-            .arg("Id")
-            .arg("Time[ns]")
-            .arg(title_str);
+    out << "Id" << _separator << "Time[ns]" << _separator << title_str << "\n";
 
     uint64_t write_row_dex = 0;
     uint64_t write_ann_num = 0;
@@ -331,7 +419,7 @@ void ProtocolExp::save_proc()
         for (int i=0; i<row_num; i++)
         {   
             if (i > 0 && i < row_num){
-                ann_row_str.append(",");
+                ann_row_str.append(_separator);
             }
 
             if (row_inf_arr[i].read_index >= annotations_arr[i].size())
@@ -340,7 +428,7 @@ void ProtocolExp::save_proc()
             Annotation *ann = annotations_arr[i].at(row_inf_arr[i].read_index);           
 
             if (ann->start_sample() == sample_index){
-                ann_row_str.append(ann->annotations().at(0));
+                ann_row_str.append(escape_field(ann->annotations().at(0)));
                 row_inf_arr[i].read_index++;
                 write_ann_num++;
             }
@@ -348,15 +436,28 @@ void ProtocolExp::save_proc()
 
         write_row_dex++;
 
-        out << QString("%1,%2,%3\n")
-                       .arg(QString::number(write_row_dex))
-                       .arg(QString::number(sample_index * ns_per_sample, 'f', 2))
-                       .arg(ann_row_str);
+        out << QString::number(write_row_dex) << _separator
+            << QString::number(sample_index * ns_per_sample, 'f', 2) << _separator
+            << ann_row_str << "\n";
 
         emit export_progress(write_ann_num * 100 / total_ann_count);
     }
 
     file.close();
+}
+
+// Quote a field (RFC 4180 style) if it contains the separator, a quote
+// or a line break, so that annotation text can't break the column layout.
+QString ProtocolExp::escape_field(const QString &field) const
+{
+    if (field.contains(_separator) || field.contains('"')
+        || field.contains('\n') || field.contains('\r'))
+    {
+        QString quoted = field;
+        quoted.replace("\"", "\"\"");
+        return "\"" + quoted + "\"";
+    }
+    return field;
 }
 
 bool ProtocolExp::compare_ann_index(const data::decode::Annotation *a, 

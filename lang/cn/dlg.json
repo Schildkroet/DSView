@@ -894,5 +894,37 @@
     {
         "id": "IDS_DLG_GROUP_WAVEFORM_VIEW",
         "text": "波形视图"
+    },
+    {
+        "id": "IDS_DLG_EXPORT_SEPARATOR",
+        "text": "分隔符: "
+    },
+    {
+        "id": "IDS_DLG_SEPARATOR_COMMA",
+        "text": "逗号 ( , )"
+    },
+    {
+        "id": "IDS_DLG_SEPARATOR_SEMICOLON",
+        "text": "分号 ( ; )"
+    },
+    {
+        "id": "IDS_DLG_SEPARATOR_TAB",
+        "text": "制表符"
+    },
+    {
+        "id": "IDS_DLG_SEPARATOR_PIPE",
+        "text": "竖线 ( | )"
+    },
+    {
+        "id": "IDS_DLG_SEPARATOR_SPACE",
+        "text": "空格"
+    },
+    {
+        "id": "IDS_DLG_EXPORT_BETWEEN_CURSORS",
+        "text": "仅导出光标之间: "
+    },
+    {
+        "id": "IDS_DLG_EXPORT_RANGE_NEED_CURSORS",
+        "text": "请先在波形上放置至少两个光标。"
     }
 ]
