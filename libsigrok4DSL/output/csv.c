@@ -63,6 +63,17 @@ struct context {
  *  - Trigger support.
  */
 
+/* One logic sample, which is unitsize bytes long and may be shorter than
+ * a uint64_t: never read past its end. */
+static uint64_t logic_sample(const struct sr_datafeed_logic *logic, uint64_t i)
+{
+	uint64_t v = 0;
+	unsigned int n = logic->unitsize < sizeof(v) ? logic->unitsize : sizeof(v);
+
+	memcpy(&v, (const uint8_t *)logic->data + i, n);
+	return v;
+}
+
 static int init(struct sr_output *o, GHashTable *options)
 {
 	struct context *ctx = NULL;
@@ -274,7 +285,7 @@ static int receive(const struct sr_output *o, const struct sr_datafeed_packet *p
             ctx->index++;
 
             if (packet->bExportOriginalData == 0){
-                if (ctx->index > 1 && (*(uint64_t *)(logic->data + i) & ctx->mask) == ctx->pre_data)
+                if (ctx->index > 1 && (logic_sample(logic, i) & ctx->mask) == ctx->pre_data)
                    continue;
             } 
             
@@ -306,7 +317,7 @@ static int receive(const struct sr_output *o, const struct sr_datafeed_packet *p
                 g_string_append_c(*out, c ? '1' : '0');
 			}
 			g_string_append_printf(*out, "\n");
-            ctx->pre_data = (*(uint64_t *)(logic->data + i) & ctx->mask);
+            ctx->pre_data = (logic_sample(logic, i) & ctx->mask);
 		}
 		break;
      case SR_DF_DSO:
@@ -342,8 +353,9 @@ static int receive(const struct sr_output *o, const struct sr_datafeed_packet *p
            *out = g_string_sized_new(512);
        }
 
-       int enalbe_channel_flags[8];
        int ch_num = 0;
+       int *enalbe_channel_flags =
+           g_new0(int, g_slist_length(sr_output_channels(o)) + 1);
 
        for (l = sr_output_channels(o); l; l = l->next){
             ch = l->data;
@@ -386,6 +398,7 @@ static int receive(const struct sr_output *o, const struct sr_datafeed_packet *p
            g_string_truncate(*out, (*out)->len - 1);
            g_string_append_printf(*out, "\n");
        }
+       g_free(enalbe_channel_flags);
        break;
 	}
 
