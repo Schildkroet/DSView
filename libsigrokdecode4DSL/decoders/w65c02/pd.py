@@ -169,6 +169,7 @@ class Decoder(srd.Decoder):
         self.cyc = []           # Bus cycles of the instruction in progress.
         self.in_reset = False   # RESB is currently low.
         self.reset_ss = None
+        self.last_samplenum = None
         self.reset_seq = 0      # Cycles left to find the reset vector fetch.
         self.reset_blind = False  # Reset vector found by position only.
         self.hold_ss = None     # Start of a cycle stretched by RDY.
@@ -214,9 +215,12 @@ class Decoder(srd.Decoder):
             # referenced any more when wait() is called again.
             pins = list(self.wait(wait_rise))
             rise = self.samplenum
+            # end() closes a reset that is still active with this.
+            self.last_samplenum = rise
             history = [(rise, pins)]
             while True:
                 pins = list(self.wait(wait_high))
+                self.last_samplenum = self.samplenum
                 if pins[Pin.PHI2] == 0:
                     break
                 history.append((self.samplenum, pins))
