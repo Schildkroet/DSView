@@ -27,7 +27,8 @@
 ##   make install     build if needed, then install (`sudo make install`)
 ##   make uninstall   remove what `make install` installed (`sudo make uninstall`)
 ##   make purge       uninstall, and delete the DSView settings too
-##   make deb         build a .deb package in ./build
+##   make deb         build a .deb package in ./build (no sudo needed), then
+##                    install it with `sudo apt install ./build/dsview_*.deb`
 ##   make clean       remove compiled objects, keep the configuration
 ##   make distclean   remove ./build entirely
 ##
@@ -116,8 +117,29 @@ purge: $(BUILD_DIR)/cmake_uninstall.cmake
 	done
 	@echo "-- DSView and its settings are removed."
 
+# Builds $(BUILD_DIR)/dsview_<version>_<arch>.deb, installing under /usr; see
+# the CPack settings in CMakeLists.txt. apt installs it with the libraries it
+# needs. A `make install` copy in /usr/local would be started instead of it, as
+# /usr/local/bin comes first in PATH: hence the note.
 deb: build
+	@command -v dpkg-shlibdeps >/dev/null 2>&1 || { \
+		echo "make deb needs dpkg-shlibdeps, from dpkg-dev: sudo apt install dpkg-dev"; exit 1; }
 	cd $(BUILD_DIR) && $(AS_USER) cpack -G DEB
+	@deb=$$(ls -t $(BUILD_DIR)/dsview_*.deb | head -1); \
+	case "$$deb" in /*) ;; *) deb="./$$deb" ;; esac; \
+	echo "-- Package: $$deb"; \
+	echo "-- Install it with: sudo apt install $$deb"; \
+	if [ -e /usr/local/bin/DSView ]; then \
+		echo "-- Note: DSView from \`make install\` is in /usr/local, and would be started"; \
+		echo "   instead of the package. Remove it first: sudo make uninstall"; \
+	fi; \
+	local_libs=$$(ldd $(BUILD_DIR)/bin/DSView 2>/dev/null | awk '$$3 ~ /^\/usr\/local\// {print "     " $$3}'); \
+	if [ -n "$$local_libs" ]; then \
+		echo "-- Warning: DSView uses these libraries from /usr/local, which no package"; \
+		echo "   provides, so the .deb cannot depend on them. It runs here, but needs"; \
+		echo "   them on any other machine:"; \
+		echo "$$local_libs"; \
+	fi
 
 clean:
 	@test ! -f $(BUILD_DIR)/CMakeCache.txt || $(AS_USER) $(SUBCMAKE) --build $(BUILD_DIR) --target clean

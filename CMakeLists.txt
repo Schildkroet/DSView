@@ -823,6 +823,37 @@ if(Qt6Core_FOUND)
     set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "qt6-wayland")
 endif()
 
+# The .deb built by `make deb` (cpack -G DEB in the build folder):
+# - installs under /usr, whatever CMAKE_INSTALL_PREFIX `make install` uses
+#   (the maintainer scripts and the udev and desktop install() rules above
+#   assume it);
+# - lists the libraries it needs, found by dpkg-shlibdeps (package dpkg-dev);
+# - has the maintainer given with -DDS_DEB_MAINTAINER="Name <mail>", else
+#   -DCPACK_PACKAGE_CONTACT (as the CI workflow does), else a placeholder:
+#   CPack refuses to build a .deb without a maintainer.
+if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+    set(DS_DEB_MAINTAINER "" CACHE STRING
+        "Maintainer field of the .deb: Name <mail>. Default: CPACK_PACKAGE_CONTACT, else a placeholder")
+    if(DS_DEB_MAINTAINER)
+        set(CPACK_DEBIAN_PACKAGE_MAINTAINER "${DS_DEB_MAINTAINER}")
+    elseif(NOT CPACK_PACKAGE_CONTACT AND NOT CPACK_DEBIAN_PACKAGE_MAINTAINER)
+        set(CPACK_DEBIAN_PACKAGE_MAINTAINER "DSView local build <dsview@localhost>")
+    endif()
+    set(CPACK_PACKAGING_INSTALL_PREFIX "/usr")
+    set(CPACK_DEBIAN_PACKAGE_NAME "dsview")
+    set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
+    set(CPACK_DEBIAN_PACKAGE_SECTION "electronics")
+    set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
+    set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://github.com/Schildkroet/DSView")
+    set(CPACK_DEBIAN_PACKAGE_DESCRIPTION
+"GUI for DreamSourceLab logic analyzers and oscilloscopes
+DSView controls DreamSourceLab instruments (DSLogic, DSCope) and shows,
+measures and decodes the captured signals. This is the Schildkroet fork,
+built from source.")
+    set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+    set(CPACK_DEBIAN_PACKAGE_CONTROL_STRICT_PERMISSION TRUE)
+endif()
+
 include(CPack)
 
 #===============================================================================

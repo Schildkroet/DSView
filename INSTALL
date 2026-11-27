@@ -79,6 +79,22 @@ Step3: Building
  $ cmake --build build -j "$(nproc)"
  $ sudo cmake --install build
 
+Debian package (Debian, Ubuntu and derivatives)
+-----------------------------------------------
+
+Instead of `make install`, you can build a .deb and install it with apt:
+ $ sudo apt install dpkg-dev                 (once, for dpkg-shlibdeps)
+ $ make deb                                  (no sudo needed)
+ $ sudo apt install ./build/dsview_*.deb
+
+The package installs under /usr, and apt pulls in the libraries it needs.
+Take it off again with `sudo apt remove dsview`.
+If DSView was installed with `make install` before, remove that copy first
+(`sudo make uninstall`, below): the one in /usr/local is started otherwise.
+To put your own name in the package's Maintainer field:
+ $ cmake -S . -B build -DDS_DEB_MAINTAINER="Your Name <you@example.com>"
+ $ make deb
+
 Uninstalling
 ------------
 
