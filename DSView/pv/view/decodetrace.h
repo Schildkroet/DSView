@@ -144,6 +144,15 @@ public:
 
 	bool create_popup(bool isnew);
 
+    /**
+     * Finds the annotation drawn at a point of the viewport.
+     * @param pt the point, in viewport coordinates.
+     * @param texts receives the annotation's texts, longest form first.
+     * @param row_title receives the title of the annotation's row.
+     * @return true if an annotation is at pt.
+     **/
+    bool get_annotation_at(const QPoint &pt, QStringList &texts, QString &row_title);
+
 protected:
     void paint_type_options(QPainter &p, int right, const QPoint pt, QColor fore);
 
