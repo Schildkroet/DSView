@@ -27,7 +27,15 @@ This fork tracks upstream DSView and adds the following.
 - **Logic trace appearance** — adjustable signal line width and optional per-channel divider lines.
 - **Catppuccin Latte and Frappé themes**, in addition to the existing light and dark ones.
 - **German translation.**
-- **Sample points** drawn on logic and oscilloscope traces when zoomed in far enough, and faster oscilloscope drawing at long time/div.
+- **Sample points** drawn on logic and oscilloscope traces when zoomed in far enough (can be turned off), and faster oscilloscope drawing at long time/div.
+- **Logic trace colours** — draw the high and low levels in their own colours.
+- **Time bar** — a thin bar above the ruler that stands for the whole capture, to browse and zoom through it.
+- **Cursor bands** — a shaded band and a time/frequency label between each cursor pair, and compact labels when cursors are close together.
+- **Measurement box** — hover, edge-count and edge-to-edge measurements in one clear box that stays inside the view.
+- **Decoded values** — copy their text with a right-click, see the full text on hover, and row names stay readable on top of the data.
+- **Export of decoded data** — choose the separator, or export only the part between two cursors.
+- **Event and state search**, and a search in the decoding results that looks at every column.
+- **Keyboard zoom** — `[` and `]` zoom, `F` shows the whole capture.
 - Smooth scrolling on high-resolution mice and touchpads.
 - Tabbed right-hand docks, reworked titlebar, clearer protocol-decoder colours, and an option to skip the save prompt on exit.
 
@@ -36,15 +44,21 @@ This fork tracks upstream DSView and adds the following.
 - **Ported to Qt6** (Qt5 still builds).
 - **Wayland** — fixed window dragging.
 - **Continuous builds** for Linux (`.deb` and AppImage) and Windows (portable zip and an Inno Setup installer). The installer also stages the WinUSB driver binding, so a fresh Windows system detects the hardware without manual driver setup; the `.deb` reloads udev rules on install for the same reason.
+- **`make deb`, `make uninstall` and `make purge`** for Linux builds from source, see [INSTALL](INSTALL).
 
 ## Protocol decoders
 
+- **65C02** — WDC W65C02S, 6502 CPU bus, with a disassembly.
 - **MCP230XX** — Microchip 8/16-bit I²C I/O expanders.
 - **TMP112** — Texas Instruments I²C temperature sensor.
 - **I3C** (SDR mode), **SMBus/PMBus**, **SENT (SAE J2716)**, **DShot** and **HDQ**.
 - **MAX7219** daisy-chain support, an optional **I²C glitch filter**, and a much faster **JTAG** decoder.
 
 See [RELEASE_NOTES.md](RELEASE_NOTES.md) for the full per-version change list.
+
+Several of the display and decoder changes come from
+[lucapandolfini/DSView](https://github.com/lucapandolfini/DSView) and the
+event/state search from [mrehkopf/DSView](https://github.com/mrehkopf/DSView).
 
 # Status
 
