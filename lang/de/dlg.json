@@ -892,6 +892,10 @@
         "text": "Kurvenansicht"
     },
     {
+        "id": "IDS_DLG_CURSOR_DELTA_BAND",
+        "text": "Zeit zwischen Cursorn (1-2, 3-4, ...)"
+    },
+    {
         "id": "IDS_DLG_SRCH_ADD_CONDITION",
         "text": "Bedingung hinzufügen"
     },
