@@ -2343,7 +2343,9 @@ void Viewport::paintMeasureBalloon(QPainter &p, QColor fore, QColor back,
     QColor line_colour(fore.red(), fore.green(), fore.blue(), 170);
     p.setPen(QPen(line_colour, 1));
     p.setBrush(solid);
-    p.drawRect(QRectF(hover_x + 0.5, hover_y + 0.5, (double)typical_width - 1, box_h - 1));
+    p.setRenderHint(QPainter::Antialiasing, true);
+    p.drawRoundedRect(QRectF(hover_x + 0.5, hover_y + 0.5, (double)typical_width - 1, box_h - 1),
+                      4 * sc, 4 * sc);
     const double tw = (double)typical_width - 2 * pad;
     double y = hover_y + pad;
 
