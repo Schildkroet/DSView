@@ -2058,19 +2058,36 @@ SR_PRIV int dsl_dev_open(struct sr_dev_driver *di, struct sr_dev_inst *sdi, gboo
  * A stopped capture leaves it running to reap the cancelled transfers, so it
  * is also stopped before the next capture and when the device is closed.
  */
+/*
+ * It is called from the session thread (remove_sources() at the end of a
+ * capture) and from the UI or hotplug thread (closing the device, starting a
+ * capture). Only one of them may join the thread; the lock also makes a
+ * second caller wait until the thread has really ended.
+ */
+static GMutex usb_thread_stop_lock;
+
 SR_PRIV void dsl_stop_usb_event_thread(const struct sr_dev_inst *sdi)
 {
     struct DSL_context *devc = sdi->priv;
     struct drv_context *drvc = sdi->driver->priv;
+    GThread *thread;
 
-    if (devc == NULL || devc->usb_thread == NULL)
+    if (devc == NULL)
         return;
 
-    devc->usb_thread_quit = TRUE;
-    /* Return from libusb_handle_events_timeout_completed() now. */
-    libusb_interrupt_event_handler(drvc->sr_ctx->libusb_ctx);
-    g_thread_join(devc->usb_thread);
+    g_mutex_lock(&usb_thread_stop_lock);
+
+    thread = devc->usb_thread;
     devc->usb_thread = NULL;
+
+    if (thread != NULL) {
+        devc->usb_thread_quit = TRUE;
+        /* Return from libusb_handle_events_timeout_completed() now. */
+        libusb_interrupt_event_handler(drvc->sr_ctx->libusb_ctx);
+        g_thread_join(thread);
+    }
+
+    g_mutex_unlock(&usb_thread_stop_lock);
 }
 
 SR_PRIV int dsl_dev_close(struct sr_dev_inst *sdi)
