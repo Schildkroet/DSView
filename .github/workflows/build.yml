@@ -349,6 +349,31 @@ jobs:
           name: DSView-${{ env.DSVIEW_VERSION }}-windows-x86_64-setup.exe
           path: installer/windows/Output/DSView-${{ env.DSVIEW_VERSION }}-windows-x86_64-setup.exe
 
+  # Installs the .deb from the Linux job in Docker containers on the latest
+  # Ubuntu release and the two latest LTS releases (see the script for the
+  # list and the checks). The "release" job does not wait for this one, so a
+  # failure here shows up in the run but does not stop the latest build from
+  # being published.
+  test-deb:
+    name: Test .deb install (Ubuntu latest + 2 LTS)
+    needs: linux
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the test script
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: scripts
+
+      - name: Download the .deb
+        uses: actions/download-artifact@v7
+        with:
+          pattern: DSView-*-linux-amd64.deb
+          path: deb
+          merge-multiple: true
+
+      - name: Install, start and remove the .deb on each Ubuntu
+        run: bash scripts/test-deb-docker.sh -v deb/*.deb
+
   release:
     name: Publish latest pre-release
     needs: [linux, windows]
