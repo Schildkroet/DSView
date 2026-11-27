@@ -390,6 +390,8 @@ SR_PRIV void sr_hotplug_wait_timout(struct sr_context *ctx);
 
 /**---------------driver ----*/
 SR_PRIV struct sr_dev_driver **sr_driver_list(void);
+SR_PRIV void sr_request_scan_retry(void);
+SR_PRIV int sr_take_scan_retry(void);
 SR_PRIV int sr_driver_init(struct sr_context *ctx,
 		struct sr_dev_driver *driver);
 

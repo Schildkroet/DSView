@@ -413,7 +413,8 @@ static GSList *scan(GSList *options)
  
         ret = dsl_check_conf_profile(device_handle);
         if (ret == DSL_PROFILE_NOT_READY) {
-            sr_warn("The device does not answer, skip it, handle:%p", device_handle);
+            sr_warn("The device does not answer, skip it for now, handle:%p", device_handle);
+            sr_request_scan_retry();
             continue;
         }
 

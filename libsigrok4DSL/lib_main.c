@@ -36,6 +36,11 @@
 
 // Wait the device reconnect for 500ms.
 #define CHECK_DEV_RECONNECT_TIMES 5
+/* A device that did not answer during a scan is looked for again every
+ * SCAN_RETRY_INTERVAL loops of the hotplug thread (about 1 s), up to
+ * SCAN_RETRY_TIMES times. */
+#define SCAN_RETRY_INTERVAL 10
+#define SCAN_RETRY_TIMES 10
 
 #undef LOG_PREFIX
 #define LOG_PREFIX "lib_main: "
@@ -1491,10 +1496,30 @@ static gpointer usb_hotplug_process_proc(gpointer data)
 	sr_info("Hotplug thread start!");
 
 	int cur_trans_id = 0;
+	int scan_retries_left = 0;
+	int scan_retry_wait = 0;
 
 	while (!lib_ctx.lib_exit_flag)
 	{
 		sr_hotplug_wait_timout(lib_ctx.sr_ctx);
+
+		// A scan, the first one or one for an attach event, skipped a
+		// device that did not answer yet: look for it again later.
+		if (sr_take_scan_retry()){
+			if (scan_retries_left == 0)
+				scan_retries_left = SCAN_RETRY_TIMES;
+			scan_retry_wait = SCAN_RETRY_INTERVAL;
+		}
+		if (scan_retries_left > 0 && --scan_retry_wait <= 0){
+			scan_retries_left--;
+			sr_info("Scan again for a device that did not answer.");
+			process_attach_event(1);
+			// The scan asks again if the device still does not answer.
+			if (sr_take_scan_retry() && scan_retries_left > 0)
+				scan_retry_wait = SCAN_RETRY_INTERVAL;
+			else
+				scan_retries_left = 0;
+		}
 
 		if (lib_ctx.attach_event_flag){
 			process_attach_event(1);

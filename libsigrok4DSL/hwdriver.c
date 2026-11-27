@@ -118,6 +118,22 @@ SR_PRIV struct sr_dev_driver **sr_driver_list(void)
 	return drivers_list;
 }
 
+/* Set by a driver's scan() when it skipped a device that did not answer
+ * yet. No hotplug event comes for it later, so the hotplug thread scans
+ * again a few times. */
+static gint scan_retry_requested = 0;
+
+SR_PRIV void sr_request_scan_retry(void)
+{
+	g_atomic_int_set(&scan_retry_requested, 1);
+}
+
+/* Return whether a retry was requested since the last call, and clear it. */
+SR_PRIV int sr_take_scan_retry(void)
+{
+	return g_atomic_int_compare_and_exchange(&scan_retry_requested, 1, 0);
+}
+
 
 /**
  * Initialize a hardware driver.
