@@ -1,15 +1,17 @@
 #!/bin/sh
-# Python writes byte-code caches (__pycache__) next to the protocol decoders
+# Python writes byte-code caches (__pycache__) next to the protocol decoders,
+# and next to the Python library the release .deb bundles in /usr/lib/dsview,
 # when DSView runs as root. dpkg doesn't know these files, so on removal they
-# would keep the decoder folders from being deleted: clear them first. Also on
+# would keep those folders from being deleted: clear them first. Also on
 # upgrade, so caches of decoders that are gone don't linger.
-# The path follows CPACK_PACKAGING_INSTALL_PREFIX (/usr) in CMakeLists.txt.
+# The paths follow CPACK_PACKAGING_INSTALL_PREFIX (/usr) in CMakeLists.txt and
+# the bundling step in .github/workflows/build.yml.
 set -e
 
-DECODERS=/usr/share/libsigrokdecode4DSL/decoders
-
-if [ -d "$DECODERS" ]; then
-    find "$DECODERS" -type d -name __pycache__ -prune -exec rm -rf {} + || true
-fi
+for dir in /usr/share/libsigrokdecode4DSL/decoders /usr/lib/dsview; do
+    if [ -d "$dir" ]; then
+        find "$dir" -type d -name __pycache__ -prune -exec rm -rf {} + || true
+    fi
+done
 
 exit 0
