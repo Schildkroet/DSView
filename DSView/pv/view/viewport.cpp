@@ -331,7 +331,7 @@ void Viewport::paintCursorBands(QPainter &p)
             continue;
 
         QColor colour = Ruler::GetColorByCursorOrder(c1->order());
-        colour.setAlpha(36);
+        colour.setAlpha(20);
         p.fillRect(QRectF(x1, 0, x2 - x1, height()), colour);
     }
 }
